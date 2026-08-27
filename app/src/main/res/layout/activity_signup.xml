@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="32dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Create Account"
+        android:textSize="30sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="8dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="32dp"
+        android:text="Join the Campus Connect community"
+        android:textColor="#666666"
+        android:textSize="14sp" />
+
+    <EditText
+        android:id="@+id/etSignupEmail"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="University Email (.education)"
+        android:inputType="textEmailAddress"
+        android:maxLines="1"
+        android:layout_marginBottom="16dp" />
+
+    <EditText
+        android:id="@+id/etSignupPassword"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Password (min 6 chars)"
+        android:inputType="textPassword"
+        android:maxLines="1"
+        android:layout_marginBottom="16dp" />
+
+    <EditText
+        android:id="@+id/etConfirmPassword"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Confirm Password"
+        android:inputType="textPassword"
+        android:maxLines="1"
+        android:layout_marginBottom="8dp" />
+
+    <TextView
+        android:id="@+id/tvSignupError"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="#D32F2F"
+        android:textSize="13sp"
+        android:visibility="gone"
+        android:layout_marginBottom="8dp" />
+
+    <Button
+        android:id="@+id/btnSignup"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Sign Up" />
+
+    <TextView
+        android:id="@+id/tvLoginLink"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:text="Already have an account? Log In"
+        android:textColor="#1976D2"
+        android:textSize="14sp" />
+
+</LinearLayout>

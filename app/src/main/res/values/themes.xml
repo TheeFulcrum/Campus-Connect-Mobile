@@ -2,8 +2,36 @@
     <!-- Base application theme. -->
     <style name="Base.Theme.CampusConnectMobile" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
-    </style>
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorPrimaryContainer">@color/colorPrimaryDark</item>
+        <item name="colorOnPrimaryContainer">@color/white</item>
 
+        <item name="colorSecondary">@color/colorAccent</item>
+        <item name="colorOnSecondary">@color/white</item>
+        <item name="colorSecondaryContainer">@color/colorAccentDark</item>
+        <item name="colorOnSecondaryContainer">@color/white</item>
+
+        <item name="colorTertiary">@color/colorSuccess</item>
+        <item name="colorOnTertiary">@color/white</item>
+
+        <item name="colorError">@color/colorError</item>
+        <item name="colorOnError">@color/white</item>
+
+        <item name="android:colorBackground">@color/colorBackground</item>
+        <item name="colorOnBackground">@color/colorTextPrimary</item>
+
+        <item name="colorSurface">@color/colorSurface</item>
+        <item name="colorOnSurface">@color/colorTextPrimary</item>
+        <item name="colorSurfaceVariant">@color/colorBorder</item>
+        <item name="colorOnSurfaceVariant">@color/colorTextMuted</item>
+    </style>
     <style name="Theme.CampusConnectMobile" parent="Base.Theme.CampusConnectMobile" />
+
+    <!-- SplashScreen Theme -->
+    <style name="Theme.App.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">#FFFFFF</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_logo</item>
+        <item name="postSplashScreenTheme">@style/Theme.CampusConnectMobile</item>
+    </style>
 </resources>

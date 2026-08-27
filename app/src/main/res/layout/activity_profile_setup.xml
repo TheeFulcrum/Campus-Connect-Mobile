@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="32dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Set Up Your Profile"
+            android:textSize="26sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Tell us a bit about yourself before you dive in"
+            android:textColor="#666666"
+            android:textSize="14sp"
+            android:layout_marginBottom="24dp" />
+
+        <EditText
+            android:id="@+id/etUsername"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Choose a username"
+            android:maxLines="1"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Campus Location"
+            android:textStyle="bold"
+            android:layout_marginBottom="4dp" />
+
+        <Spinner
+            android:id="@+id/spCampusLocation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:entries="@array/campus_locations"
+            android:layout_marginBottom="24dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="What would you like to see on your feed?"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp" />
+
+        <CheckBox
+            android:id="@+id/cbServices"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Services (tutoring, hair, design, etc.)" />
+
+        <CheckBox
+            android:id="@+id/cbGoods"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Goods &amp; Textbooks" />
+
+        <CheckBox
+            android:id="@+id/cbAcademic"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Academic Help" />
+
+        <CheckBox
+            android:id="@+id/cbEvents"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Events &amp; Clubs" />
+
+        <CheckBox
+            android:id="@+id/cbHousing"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Housing &amp; Roommates" />
+
+        <CheckBox
+            android:id="@+id/cbGigs"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Gigs &amp; Jobs"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:id="@+id/tvProfileError"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="#D32F2F"
+            android:textSize="13sp"
+            android:visibility="gone"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/btnContinue"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Continue" />
+
+    </LinearLayout>
+</ScrollView>

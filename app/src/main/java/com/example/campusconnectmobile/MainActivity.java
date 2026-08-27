@@ -1,5 +1,6 @@
 package com.example.campusconnectmobile;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Patterns;
@@ -8,7 +9,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import androidx.appcompat.app.AppCompatActivity;
 
 public class MainActivity extends AppCompatActivity {
@@ -16,11 +16,14 @@ public class MainActivity extends AppCompatActivity {
     private EditText etEmail, etPassword;
     private TextView tvError, tvSignUp;
     private Button btnLogin;
+    private DatabaseHelper dbHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+        super.onCreate(savedInstanceState); // no splash install here anymore — SplashActivity owns that
         setContentView(R.layout.activity_main);
+
+        dbHelper = new DatabaseHelper(this);
 
         etEmail = findViewById(R.id.etEmail);
         etPassword = findViewById(R.id.etPassword);
@@ -29,10 +32,8 @@ public class MainActivity extends AppCompatActivity {
         tvSignUp = findViewById(R.id.tvSignUp);
 
         btnLogin.setOnClickListener(v -> attemptLogin());
-
-        tvSignUp.setOnClickListener(v -> {
-            startActivity(new android.content.Intent(MainActivity.this, SignUpActivity.class));
-        });
+        tvSignUp.setOnClickListener(v ->
+                startActivity(new Intent(MainActivity.this, SignUpActivity.class)));
     }
 
     private void attemptLogin() {
@@ -47,8 +48,8 @@ public class MainActivity extends AppCompatActivity {
             showError("Please enter a valid email address.");
             return;
         }
-        if (!email.toLowerCase().endsWith(".education")) {
-            showError("Please use your university (.education) email.");
+        if (!email.toLowerCase().endsWith("@edenuniversity.education")) {
+            showError("Please use your university (@edenuniversity.education) email.");
             return;
         }
         if (TextUtils.isEmpty(password)) {
@@ -57,8 +58,17 @@ public class MainActivity extends AppCompatActivity {
         }
 
         hideError();
-        Toast.makeText(this, "Logged in as " + email, Toast.LENGTH_SHORT).show();
-    }
+        if (dbHelper.checkUser(email, password)) {
+            Intent intent = new Intent(MainActivity.this, HomeActivity.class);
+            intent.putExtra(HomeActivity.EXTRA_EMAIL, email);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
+            finish();
+        } else {
+            showError("Invalid email or password.");
+        }
+
+}
 
     private void showError(String message) {
         tvError.setText(message);

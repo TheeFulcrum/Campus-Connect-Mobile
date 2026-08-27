@@ -36,6 +36,7 @@ android {
 dependencies {
     implementation(libs.activity.ktx)
     implementation(libs.appcompat)
+    implementation(libs.core.splashscreen)
     implementation(libs.constraintlayout)
     implementation(libs.material)
     testImplementation(libs.junit)
