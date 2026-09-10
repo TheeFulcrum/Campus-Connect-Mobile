@@ -4,4 +4,12 @@
         <item>Main Campus</item>
         <item>Great East Campus</item>
     </string-array>
+    <string-array name="post_categories">
+        <item>Services</item>
+        <item>Goods &amp; Textbooks</item>
+        <item>Academic &amp; Help</item>
+        <item>Events &amp; Clubs</item>
+        <item>Housing &amp; Roommates</item>
+        <item>Gigs &amp; Jobs</item>
+    </string-array>
 </resources>

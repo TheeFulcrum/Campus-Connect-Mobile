@@ -18,7 +18,14 @@ public class SplashActivity extends AppCompatActivity {
 
         new android.os.Handler().postDelayed(() -> {
             isReady[0] = true;
-            startActivity(new Intent(SplashActivity.this, MainActivity.class));
+            SessionManager sessionManager = new SessionManager(SplashActivity.this);
+            if (sessionManager.isLoggedIn()) {
+                Intent intent = new Intent(SplashActivity.this, HomeActivity.class);
+                intent.putExtra(HomeActivity.EXTRA_EMAIL, sessionManager.getLoggedInEmail());
+                startActivity(intent);
+            } else {
+                startActivity(new Intent(SplashActivity.this, MainActivity.class));
+            }
             finish();
         }, 1200);
     }

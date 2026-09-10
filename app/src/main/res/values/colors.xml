@@ -1,32 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-    Campus Connect — shared color tokens
-    Keep these values identical to the :root variables in style.css
-    so the app and website feel like one product.
--->
 <resources>
-    <!-- Existing default colors -->
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
-
-    <!-- Primary — Campus Navy: trust, headers, primary buttons -->
-    <color name="colorPrimary">#1B3A4B</color>
-    <color name="colorPrimaryDark">#12262F</color>
-
-    <!-- Accent — Ember Orange: CTAs, "post a gig", energy -->
-    <color name="colorAccent">#FF6B35</color>
-    <color name="colorAccentDark">#E4551F</color>
-
-    <!-- Success / Verified — Campus Green: badges, ratings, confirmations -->
-    <color name="colorSuccess">#2E8B57</color>
-
-    <!-- Neutrals -->
-    <color name="colorBackground">#F7F5F1</color>
+    <!-- Campus Connect Brand Colors -->
+    <color name="colorPrimary">#243B6B</color>
+    <color name="colorPrimaryDark">#182747</color>
+    <color name="colorAccent">#FF6B45</color>
+    <color name="colorAccentDark">#E0532B</color>
+    <color name="colorSuccess">#2E9E6E</color>
+    <color name="colorBackground">#FFFFFF</color>
     <color name="colorSurface">#FFFFFF</color>
-    <color name="colorTextPrimary">#1F2421</color>
-    <color name="colorTextMuted">#5B655F</color>
-    <color name="colorBorder">#E4E0D8</color>
+    <color name="colorTextPrimary">#1D1B16</color>
+    <color name="colorTextMuted">#6B6558</color>
+    <color name="colorBorder">#E4E1D8</color>
+    <color name="colorError">#C1432E</color>
 
-    <!-- Semantic / status -->
-    <color name="colorError">#C0392B</color>
+    <!-- Standard Colors -->
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+    <color name="gray">#808080</color>
 </resources>

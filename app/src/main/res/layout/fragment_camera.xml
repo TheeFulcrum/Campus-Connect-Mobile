@@ -2,71 +2,70 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/colorBackground"
     android:orientation="vertical"
-    android:gravity="center"
-    android:padding="32dp">
+    android:padding="24dp">
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Campus Connect Mobile"
-        android:textSize="30sp"
+        android:text="New Post"
+        android:textSize="24sp"
         android:textStyle="bold"
         android:textColor="@color/colorPrimary"
-        android:layout_marginBottom="8dp" />
+        android:layout_marginBottom="20dp" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="180dp"
+        android:background="@color/colorBorder"
+        android:layout_marginBottom="16dp" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="32dp"
-        android:text="Log in with your university email or username"
+        android:text="Photo upload isn't wired up yet — this box is a placeholder."
+        android:textSize="12sp"
         android:textColor="@color/colorTextMuted"
-        android:textSize="14sp" />
+        android:layout_marginBottom="20dp" />
 
-    <EditText
-        android:id="@+id/etEmail"
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Category"
+        android:textStyle="bold"
+        android:layout_marginBottom="4dp" />
+
+    <Spinner
+        android:id="@+id/spPostCategory"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Email or Username"
-        android:inputType="text"
-        android:maxLines="1"
+        android:entries="@array/post_categories"
         android:layout_marginBottom="16dp" />
 
     <EditText
-        android:id="@+id/etPassword"
+        android:id="@+id/etPostCaption"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Password"
-        android:inputType="textPassword"
-        android:maxLines="1"
+        android:hint="Write a caption..."
+        android:inputType="textMultiLine"
+        android:minLines="3"
         android:layout_marginBottom="8dp" />
 
     <TextView
-        android:id="@+id/tvError"
+        android:id="@+id/tvPostError"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textColor="@color/colorError"
-        android:textSize="13sp"
         android:visibility="gone"
         android:layout_marginBottom="8dp" />
 
     <Button
-        android:id="@+id/btnLogin"
+        android:id="@+id/btnSharePost"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:backgroundTint="@color/colorAccent"
         android:textColor="@color/white"
-        android:text="Log In" />
-
-    <TextView
-        android:id="@+id/tvSignUp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:clickable="true"
-        android:focusable="true"
-        android:text="Don't have an account? Sign Up"
-        android:textColor="@color/colorAccent"
-        android:textSize="14sp" />
+        android:text="Share Post" />
 
 </LinearLayout>

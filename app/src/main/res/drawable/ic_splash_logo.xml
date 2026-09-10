@@ -1,10 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
-    android:viewportWidth="24"
-    android:viewportHeight="24">
-    <!-- A stylized graduation cap as a placeholder for Campus Connect -->
-    <path
-        android:fillColor="#1B3A4B"
-        android:pathData="M12,3L1,9L12,15L21,10.09V17H23V9M5,13.18V17.18L12,21L19,17.18V13.18L12,17L5,13.18Z" />
+    android:viewportWidth="512"
+    android:viewportHeight="512">
+
+    <!-- Perfectly centered for Splash Screen API (108dp total, 72dp safe zone) -->
+    <group
+        android:scaleX="0.65"
+        android:scaleY="0.65"
+        android:pivotX="256"
+        android:pivotY="231.5"
+        android:translateY="24.5">
+
+        <!-- Mortarboard Top -->
+        <path
+            android:fillColor="#FF6B45"
+            android:strokeColor="#FF6B45"
+            android:pathData="M256,43 L470,166 L256,289 L42,166 Z" />
+
+        <!-- Skull Cap Underneath -->
+        <path
+            android:fillColor="#FF6B45"
+            android:strokeColor="#FF6B45"
+            android:pathData="M129,224 v36 c0,40 57,72 127,72 s127,-32 127,-72 v-36 L256,298 Z" />
+
+        <!-- Tassel string -->
+        <path
+            android:strokeColor="#FF6B45"
+            android:strokeWidth="6"
+            android:strokeLineCap="round"
+            android:pathData="M428,166 v74" />
+
+        <!-- Tassel end -->
+        <path
+            android:fillColor="#FF6B45"
+            android:strokeColor="#FF6B45"
+            android:pathData="M428,230 L416,252 L416,295 L440,295 L440,252 Z" />
+
+        <!-- Network links -->
+        <path
+            android:strokeColor="#FF6B45"
+            android:strokeWidth="16"
+            android:strokeLineCap="round"
+            android:pathData="M256,295 L100,380 M256,295 L256,420 M256,295 L412,380" />
+
+        <!-- Central node -->
+        <path
+            android:fillColor="#FF6B45"
+            android:pathData="M284,295 a28,28 0 1,1 -56,0 a28,28 0 1,1 56,0 Z" />
+
+        <!-- Left node -->
+        <path
+            android:fillColor="#FF6B45"
+            android:pathData="M128,380 a28,28 0 1,1 -56,0 a28,28 0 1,1 56,0 Z" />
+
+        <!-- Center-bottom node -->
+        <path
+            android:fillColor="#FF6B45"
+            android:pathData="M284,420 a28,28 0 1,1 -56,0 a28,28 0 1,1 56,0 Z" />
+
+        <!-- Right node -->
+        <path
+            android:fillColor="#FF6B45"
+            android:pathData="M440,380 a28,28 0 1,1 -56,0 a28,28 0 1,1 56,0 Z" />
+    </group>
 </vector>

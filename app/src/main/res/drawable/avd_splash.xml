@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<animated-vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:drawable="@drawable/ic_splash_animated_base">
+    <target
+        android:name="cap_group"
+        android:animation="@animator/cap_scale" />
+    <target
+        android:name="network_group"
+        android:animation="@animator/network_appear" />
+</animated-vector>

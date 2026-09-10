@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="512"
+    android:viewportHeight="512">
+
+    <!-- Scaled to 65% to fit safe zone (72dp/108dp), centered at 256, 256 -->
+    <group
+        android:scaleX="0.65"
+        android:scaleY="0.65"
+        android:pivotX="256"
+        android:pivotY="256">
+
+        <!-- Shifted content to be centered at 256, 256 -->
+        <group android:translateY="24.5">
+            <!-- Cap scaling group -->
+            <group
+                android:name="cap_group"
+                android:pivotX="256"
+                android:pivotY="166"
+                android:scaleX="0"
+                android:scaleY="0">
+                <path
+                    android:fillColor="#FF6B45"
+                    android:pathData="M256,43 L470,166 L256,289 L42,166 Z" />
+                <path
+                    android:fillColor="#FF6B45"
+                    android:pathData="M129,224 v36 c0,40 57,72 127,72 s127,-32 127,-72 v-36 L256,298 Z" />
+                <path
+                    android:strokeColor="#FF6B45"
+                    android:strokeWidth="6"
+                    android:strokeLineCap="round"
+                    android:pathData="M428,166 v74" />
+                <path
+                    android:fillColor="#FF6B45"
+                    android:pathData="M428,230 L416,252 L416,295 L440,295 L440,252 Z" />
+            </group>
+
+            <!-- Network nodes group -->
+            <group
+                android:name="network_group"
+                android:alpha="0">
+                <path
+                    android:strokeColor="#FF6B45"
+                    android:strokeWidth="16"
+                    android:strokeLineCap="round"
+                    android:pathData="M256,295 L100,380 M256,295 L256,420 M256,295 L412,380" />
+                <path
+                    android:fillColor="#FF6B45"
+                    android:pathData="M284,295 a28,28 0 1,1 -56,0 a28,28 0 1,1 56,0 Z" />
+                <path
+                    android:fillColor="#FF6B45"
+                    android:pathData="M128,380 a28,28 0 1,1 -56,0 a28,28 0 1,1 56,0 Z" />
+                <path
+                    android:fillColor="#FF6B45"
+                    android:pathData="M284,420 a28,28 0 1,1 -56,0 a28,28 0 1,1 56,0 Z" />
+                <path
+                    android:fillColor="#FF6B45"
+                    android:pathData="M440,380 a28,28 0 1,1 -56,0 a28,28 0 1,1 56,0 Z" />
+            </group>
+        </group>
+    </group>
+</vector>

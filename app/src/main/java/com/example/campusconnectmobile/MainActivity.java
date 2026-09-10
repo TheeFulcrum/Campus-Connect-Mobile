@@ -37,38 +37,44 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void attemptLogin() {
-        String email = etEmail.getText().toString().trim();
+        String identifier = etEmail.getText().toString().trim();
         String password = etPassword.getText().toString().trim();
 
-        if (TextUtils.isEmpty(email)) {
-            showError("Please enter your email.");
+        if (TextUtils.isEmpty(identifier)) {
+            showError("Please enter your email or username.");
             return;
         }
-        if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            showError("Please enter a valid email address.");
-            return;
+
+        // Basic validation if it looks like an email
+        if (identifier.contains("@")) {
+            if (!Patterns.EMAIL_ADDRESS.matcher(identifier).matches()) {
+                showError("Please enter a valid email address.");
+                return;
+            }
+            if (!identifier.toLowerCase().endsWith("@edenuniversity.education")) {
+                showError("Please use your university (@edenuniversity.education) email.");
+                return;
+            }
         }
-        if (!email.toLowerCase().endsWith("@edenuniversity.education")) {
-            showError("Please use your university (@edenuniversity.education) email.");
-            return;
-        }
+
         if (TextUtils.isEmpty(password)) {
             showError("Please enter your password.");
             return;
         }
 
         hideError();
-        if (dbHelper.checkUser(email, password)) {
+        String userEmail = dbHelper.checkUserAndGetEmail(identifier, password);
+        if (userEmail != null) {
+            new SessionManager(this).createSession(userEmail);
             Intent intent = new Intent(MainActivity.this, HomeActivity.class);
-            intent.putExtra(HomeActivity.EXTRA_EMAIL, email);
+            intent.putExtra(HomeActivity.EXTRA_EMAIL, userEmail);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
             finish();
         } else {
-            showError("Invalid email or password.");
+            showError("Invalid email/username or password.");
         }
-
-}
+    }
 
     private void showError(String message) {
         tvError.setText(message);

@@ -7,13 +7,14 @@ import android.util.Patterns;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 public class SignUpActivity extends AppCompatActivity {
 
-    private EditText etSignupEmail, etSignupPassword, etConfirmPassword;
+    private EditText etSignupUsername, etSignupEmail, etSignupPassword, etConfirmPassword;
+    private Spinner spSignupCampus;
     private TextView tvSignupError, tvLoginLink;
     private Button btnSignup;
     private DatabaseHelper dbHelper;
@@ -25,7 +26,9 @@ public class SignUpActivity extends AppCompatActivity {
 
         dbHelper = new DatabaseHelper(this);
 
+        etSignupUsername = findViewById(R.id.etSignupUsername);
         etSignupEmail = findViewById(R.id.etSignupEmail);
+        spSignupCampus = findViewById(R.id.spSignupCampus);
         etSignupPassword = findViewById(R.id.etSignupPassword);
         etConfirmPassword = findViewById(R.id.etConfirmPassword);
         tvSignupError = findViewById(R.id.tvSignupError);
@@ -40,10 +43,24 @@ public class SignUpActivity extends AppCompatActivity {
     }
 
     private void attemptSignUp() {
+        String username = etSignupUsername.getText().toString().trim();
         String email = etSignupEmail.getText().toString().trim();
+        String campusLocation = spSignupCampus.getSelectedItem().toString();
         String password = etSignupPassword.getText().toString().trim();
         String confirmPass = etConfirmPassword.getText().toString().trim();
 
+        if (TextUtils.isEmpty(username)) {
+            showError("Please choose a username.");
+            return;
+        }
+        if (username.length() < 3) {
+            showError("Username must be at least 3 characters.");
+            return;
+        }
+        if (dbHelper.usernameExists(username)) {
+            showError("That username is already taken.");
+            return;
+        }
         if (TextUtils.isEmpty(email)) {
             showError("Please enter your university email.");
             return;
@@ -54,6 +71,10 @@ public class SignUpActivity extends AppCompatActivity {
         }
         if (!email.toLowerCase().endsWith("@edenuniversity.education")) {
             showError("Please use your university (@edenuniversity.education) email.");
+            return;
+        }
+        if (dbHelper.userExists(email)) {
+            showError("An account with this email already exists.");
             return;
         }
         if (TextUtils.isEmpty(password)) {
@@ -69,14 +90,9 @@ public class SignUpActivity extends AppCompatActivity {
             return;
         }
 
-        if (dbHelper.userExists(email)) {
-            showError("An account with this email already exists.");
-            return;
-        }
         hideError();
-        boolean success = dbHelper.registerUser(email, password);
+        boolean success = dbHelper.registerUser(email, password, username, campusLocation);
         if (success) {
-            Toast.makeText(this, "Account created for " + email, Toast.LENGTH_SHORT).show();
             Intent intent = new Intent(this, ProfileSetupActivity.class);
             intent.putExtra(ProfileSetupActivity.EXTRA_EMAIL, email);
             startActivity(intent);

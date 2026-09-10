@@ -12,47 +12,19 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Set Up Your Profile"
+            android:text="Personalize Your Feed"
             android:textSize="26sp"
             android:textStyle="bold"
+            android:textColor="@color/colorPrimary"
             android:layout_marginBottom="8dp" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Tell us a bit about yourself before you dive in"
-            android:textColor="#666666"
-            android:textSize="14sp"
-            android:layout_marginBottom="24dp" />
-
-        <EditText
-            android:id="@+id/etUsername"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Choose a username"
-            android:maxLines="1"
-            android:layout_marginBottom="16dp" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Campus Location"
-            android:textStyle="bold"
-            android:layout_marginBottom="4dp" />
-
-        <Spinner
-            android:id="@+id/spCampusLocation"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:entries="@array/campus_locations"
-            android:layout_marginBottom="24dp" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="What would you like to see on your feed?"
-            android:textStyle="bold"
-            android:layout_marginBottom="8dp" />
+            android:textColor="@color/colorTextMuted"
+            android:textSize="14sp"
+            android:layout_marginBottom="24dp" />
 
         <CheckBox
             android:id="@+id/cbServices"
@@ -95,7 +67,7 @@
             android:id="@+id/tvProfileError"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="#D32F2F"
+            android:textColor="@color/colorError"
             android:textSize="13sp"
             android:visibility="gone"
             android:layout_marginBottom="8dp" />
@@ -104,6 +76,8 @@
             android:id="@+id/btnContinue"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:backgroundTint="@color/colorAccent"
+            android:textColor="@color/white"
             android:text="Continue" />
 
     </LinearLayout>
