@@ -2,6 +2,10 @@ plugins {
     alias(libs.plugins.android.application)
 }
 
+val authApiBaseUrl = providers.gradleProperty("ccwApiBaseUrl")
+    .orElse("http://10.0.2.2:8000/")
+    .get()
+
 android {
     namespace = "com.example.campusconnectmobile"
     compileSdk {
@@ -17,6 +21,8 @@ android {
         versionCode = 1
         versionName = "1.0"
 
+        buildConfigField("String", "CCW_AUTH_API_BASE_URL", "\"$authApiBaseUrl\"")
+
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -26,6 +32,9 @@ android {
                 enable = false
             }
         }
+    }
+    buildFeatures {
+        buildConfig = true
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -48,4 +57,5 @@ dependencies {
     implementation("com.google.android.material:material:1.9.0")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     implementation("androidx.fragment:fragment:1.6.1")
+    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
 }

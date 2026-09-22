@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="start"
+    android:orientation="horizontal"
+    android:paddingStart="16dp"
+    android:paddingEnd="64dp"
+    android:paddingTop="4dp"
+    android:paddingBottom="4dp">
+
+    <View
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:layout_gravity="bottom"
+        android:layout_marginBottom="2dp"
+        android:background="@drawable/bg_avatar_circle" />
+
+    <TextView
+        android:id="@+id/tvMessageTheirs"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:background="@drawable/bg_bubble_theirs"
+        android:paddingHorizontal="14dp"
+        android:paddingVertical="10dp"
+        android:text="Their message"
+        android:textColor="@color/colorTextPrimary"
+        android:textSize="14sp" />
+
+</LinearLayout>

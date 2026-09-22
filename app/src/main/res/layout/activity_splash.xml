@@ -29,6 +29,15 @@
             android:layout_marginStart="8dp" />
     </LinearLayout>
 
+    <TextView
+        android:id="@+id/tvSplashWelcome"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:textColor="@color/colorTextMuted"
+        android:textSize="18sp"
+        android:visibility="gone" />
+
     <ProgressBar
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

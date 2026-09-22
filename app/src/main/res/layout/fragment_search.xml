@@ -13,21 +13,34 @@
         android:padding="16dp"
         android:background="@color/colorSurface" />
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvSearchResults"
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/advertsRefresh"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        android:paddingTop="8dp" />
+        android:layout_weight="1">
 
-    <TextView
-        android:id="@+id/tvSearchEmpty"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:padding="40dp"
-        android:text="Search for gigs, textbooks, tutoring, and more."
-        android:textColor="@color/colorTextMuted"
-        android:visibility="visible" />
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvSearchResults"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:paddingTop="8dp"
+                android:clipToPadding="false" />
+
+            <TextView
+                android:id="@+id/tvSearchEmpty"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:padding="40dp"
+                android:text="No adverts available yet."
+                android:textColor="@color/colorTextMuted"
+                android:visibility="gone" />
+        </FrameLayout>
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
 </LinearLayout>

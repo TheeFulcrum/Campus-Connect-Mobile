@@ -14,3 +14,9 @@
 .cxx
 local.properties
 .idea/
+.vscode/
+*.code-workspace
+.env
+.env.*
+*.env
+**/*.env

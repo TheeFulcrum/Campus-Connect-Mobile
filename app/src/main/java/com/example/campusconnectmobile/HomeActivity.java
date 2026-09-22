@@ -114,7 +114,21 @@ public class HomeActivity extends AppCompatActivity {
      * Clears user session and redirects to login screen.
      */
     private void clearSessionAndRedirect() {
+        String token = sessionManager.getAuthToken();
         sessionManager.clearSession();
+        if (token != null) {
+            AuthApiClient.logout(token, new AuthApiClient.Callback() {
+                @Override
+                public void onSuccess(AuthApiClient.AuthResult result) {
+                    // The local session has already been removed.
+                }
+
+                @Override
+                public void onError(String message) {
+                    // Local logout must still complete when the device is offline.
+                }
+            });
+        }
         redirectToLogin();
     }
 
@@ -144,10 +158,26 @@ public class HomeActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        // Check if user is still logged in
         if (!sessionManager.isLoggedIn()) {
             redirectToLogin();
+            return;
         }
+
+        AuthApiClient.validateSession(sessionManager.getAuthToken(), new AuthApiClient.Callback() {
+            @Override
+            public void onSuccess(AuthApiClient.AuthResult result) {
+                if (!email.equalsIgnoreCase(result.email)) {
+                    sessionManager.clearSession();
+                    redirectToLogin();
+                }
+            }
+
+            @Override
+            public void onError(String message) {
+                sessionManager.clearSession();
+                redirectToLogin();
+            }
+        });
     }
 
     /**

@@ -1,13 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Dark Mode Palette -->
-    <color name="colorBackground">#121212</color>
-    <color name="colorSurface">#1E1E1E</color>
-    <color name="colorTextPrimary">#F7F6F2</color> <!-- Using Brand Background as light text -->
-    <color name="colorTextMuted">#A09A8E</color>
-    <color name="colorBorder">#333333</color>
+    <!-- Dark theme palette matching the website -->
+    <color name="colorBackground">#12181C</color>
+    <color name="colorSurface">#1B242A</color>
+    <color name="colorTextPrimary">#F2F0EA</color>
+    <color name="colorTextMuted">#9DA8A3</color>
+    <color name="colorBorder">#2C3941</color>
 
-    <!-- Brand colors stay the same for consistency -->
+    <!-- Brand colors stay the same -->
     <color name="colorPrimary">#243B6B</color>
+    <color name="colorPrimaryDark">#182747</color>
     <color name="colorAccent">#FF6B45</color>
+    <color name="colorAccentDark">#E0532B</color>
+    <color name="colorSuccess">#2E9E6E</color>
+    <color name="colorError">#C1432E</color>
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
 </resources>

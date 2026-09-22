@@ -57,10 +57,6 @@ public class SignUpActivity extends AppCompatActivity {
             showError("Username must be at least 3 characters.");
             return;
         }
-        if (dbHelper.usernameExists(username)) {
-            showError("That username is already taken.");
-            return;
-        }
         if (TextUtils.isEmpty(email)) {
             showError("Please enter your university email.");
             return;
@@ -73,16 +69,12 @@ public class SignUpActivity extends AppCompatActivity {
             showError("Please use your university (@edenuniversity.education) email.");
             return;
         }
-        if (dbHelper.userExists(email)) {
-            showError("An account with this email already exists.");
-            return;
-        }
         if (TextUtils.isEmpty(password)) {
             showError("Please enter a password.");
             return;
         }
-        if (password.length() < 6) {
-            showError("Password must be at least 6 characters.");
+        if (password.length() < 8) {
+            showError("Password must be at least 8 characters.");
             return;
         }
         if (!password.equals(confirmPass)) {
@@ -91,15 +83,44 @@ public class SignUpActivity extends AppCompatActivity {
         }
 
         hideError();
-        boolean success = dbHelper.registerUser(email, password, username, campusLocation);
-        if (success) {
-            Intent intent = new Intent(this, ProfileSetupActivity.class);
-            intent.putExtra(ProfileSetupActivity.EXTRA_EMAIL, email);
-            startActivity(intent);
-            finish();
-        } else {
-            showError("Something went wrong. Please try again.");
-        }
+        btnSignup.setEnabled(false);
+        AuthApiClient.register(username, email, campusLocation, password, new AuthApiClient.Callback() {
+            @Override
+            public void onSuccess(AuthApiClient.AuthResult result) {
+                dbHelper.cacheRemoteUser(result.email, result.username, result.campus);
+                beginOtpVerification(result.email);
+            }
+
+            @Override
+            public void onError(String message) {
+                if ("An account with this email already exists.".equals(message)) {
+                    beginOtpVerification(email);
+                    return;
+                }
+                btnSignup.setEnabled(true);
+                showError(message);
+            }
+        });
+    }
+
+    private void beginOtpVerification(String email) {
+        AuthApiClient.requestOtp(email, new AuthApiClient.Callback() {
+            @Override
+            public void onSuccess(AuthApiClient.AuthResult ignored) {
+                Intent intent = new Intent(SignUpActivity.this, OtpLoginActivity.class);
+                intent.putExtra(OtpLoginActivity.EXTRA_EMAIL, email);
+                intent.putExtra(OtpLoginActivity.EXTRA_CODE_SENT, true);
+                intent.putExtra(OtpLoginActivity.EXTRA_CONTINUE_TO_LOGIN, true);
+                startActivity(intent);
+                finish();
+            }
+
+            @Override
+            public void onError(String message) {
+                btnSignup.setEnabled(true);
+                showError(message);
+            }
+        });
     }
 
     private void showError(String message) {

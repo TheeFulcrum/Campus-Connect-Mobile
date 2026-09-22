@@ -7,6 +7,7 @@ public class SessionManager {
 
     private static final String PREF_NAME = "campus_connect_session";
     private static final String KEY_EMAIL = "logged_in_email";
+    private static final String KEY_AUTH_TOKEN = "auth_token";
 
     private static final String KEY_THEME = "app_theme";
 
@@ -29,15 +30,26 @@ public class SessionManager {
         prefs.edit().putString(KEY_EMAIL, email).apply();
     }
 
+    public void createSession(String email, String token) {
+        prefs.edit()
+                .putString(KEY_EMAIL, email)
+                .putString(KEY_AUTH_TOKEN, token)
+                .apply();
+    }
+
     public boolean isLoggedIn() {
-        return prefs.getString(KEY_EMAIL, null) != null;
+        return prefs.getString(KEY_EMAIL, null) != null && getAuthToken() != null;
     }
 
     public String getLoggedInEmail() {
         return prefs.getString(KEY_EMAIL, null);
     }
 
+    public String getAuthToken() {
+        return prefs.getString(KEY_AUTH_TOKEN, null);
+    }
+
     public void clearSession() {
-        prefs.edit().remove(KEY_EMAIL).apply();
+        prefs.edit().remove(KEY_EMAIL).remove(KEY_AUTH_TOKEN).apply();
     }
 }

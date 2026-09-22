@@ -13,10 +13,14 @@ import androidx.appcompat.app.AppCompatActivity;
 
 public class MainActivity extends AppCompatActivity {
 
+    public static final String EXTRA_PREFILLED_IDENTIFIER = "extra_prefilled_identifier";
+    public static final String EXTRA_CONTINUE_TO_PREFERENCES = "extra_continue_to_preferences";
+
     private EditText etEmail, etPassword;
     private TextView tvError, tvSignUp;
     private Button btnLogin;
     private DatabaseHelper dbHelper;
+    private boolean continueToPreferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,6 +34,12 @@ public class MainActivity extends AppCompatActivity {
         tvError = findViewById(R.id.tvError);
         btnLogin = findViewById(R.id.btnLogin);
         tvSignUp = findViewById(R.id.tvSignUp);
+        continueToPreferences = getIntent().getBooleanExtra(EXTRA_CONTINUE_TO_PREFERENCES, false);
+        String prefilledIdentifier = getIntent().getStringExtra(EXTRA_PREFILLED_IDENTIFIER);
+        if (prefilledIdentifier != null) {
+            etEmail.setText(prefilledIdentifier);
+            Toast.makeText(this, "Email verified. Log in to continue.", Toast.LENGTH_SHORT).show();
+        }
 
         btnLogin.setOnClickListener(v -> attemptLogin());
         tvSignUp.setOnClickListener(v ->
@@ -63,17 +73,31 @@ public class MainActivity extends AppCompatActivity {
         }
 
         hideError();
-        String userEmail = dbHelper.checkUserAndGetEmail(identifier, password);
-        if (userEmail != null) {
-            new SessionManager(this).createSession(userEmail);
-            Intent intent = new Intent(MainActivity.this, HomeActivity.class);
-            intent.putExtra(HomeActivity.EXTRA_EMAIL, userEmail);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(intent);
-            finish();
-        } else {
-            showError("Invalid email/username or password.");
-        }
+        btnLogin.setEnabled(false);
+        AuthApiClient.login(identifier, password, new AuthApiClient.Callback() {
+            @Override
+            public void onSuccess(AuthApiClient.AuthResult result) {
+                dbHelper.cacheRemoteUser(result.email, result.username, result.campus);
+                Intent intent = continueToPreferences
+                        ? new Intent(MainActivity.this, ProfileSetupActivity.class)
+                        : new Intent(MainActivity.this, HomeActivity.class);
+                intent.putExtra(continueToPreferences ? ProfileSetupActivity.EXTRA_EMAIL : HomeActivity.EXTRA_EMAIL, result.email);
+                if (continueToPreferences) {
+                    intent.putExtra(ProfileSetupActivity.EXTRA_AUTH_TOKEN, result.token);
+                } else {
+                    new SessionManager(MainActivity.this).createSession(result.email, result.token);
+                }
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(intent);
+                finish();
+            }
+
+            @Override
+            public void onError(String message) {
+                btnLogin.setEnabled(true);
+                showError(message);
+            }
+        });
     }
 
     private void showError(String message) {

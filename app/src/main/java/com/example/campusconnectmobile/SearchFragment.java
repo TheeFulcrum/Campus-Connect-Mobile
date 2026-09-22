@@ -13,6 +13,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import java.util.List;
 
@@ -37,9 +38,30 @@ public class SearchFragment extends Fragment {
         EditText etQuery = view.findViewById(R.id.etSearchQuery);
         TextView tvEmpty = view.findViewById(R.id.tvSearchEmpty);
         RecyclerView rvResults = view.findViewById(R.id.rvSearchResults);
+        SwipeRefreshLayout refreshLayout = view.findViewById(R.id.advertsRefresh);
         rvResults.setLayoutManager(new LinearLayoutManager(requireContext()));
 
         DatabaseHelper dbHelper = new DatabaseHelper(requireContext());
+
+        Runnable refreshResults = () -> {
+            String query = etQuery.getText().toString().trim().toLowerCase();
+            List<DatabaseHelper.Post> results = dbHelper.getAllPosts();
+            if (!query.isEmpty()) {
+                results.removeIf(post -> !(post.caption.toLowerCase().contains(query)
+                        || post.category.toLowerCase().contains(query)
+                        || post.username.toLowerCase().contains(query)));
+            }
+            tvEmpty.setVisibility(results.isEmpty() ? View.VISIBLE : View.GONE);
+            tvEmpty.setText(query.isEmpty() ? "No adverts available yet." : "No results for \"" + query + "\".");
+            rvResults.setAdapter(results.isEmpty() ? null : new PostAdapter(results));
+        };
+
+        refreshLayout.setOnRefreshListener(() -> {
+            refreshResults.run();
+            refreshLayout.setRefreshing(false);
+            rvResults.scrollToPosition(0);
+        });
+        refreshResults.run();
 
         etQuery.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -47,23 +69,7 @@ public class SearchFragment extends Fragment {
 
             @Override
             public void afterTextChanged(Editable s) {
-                String query = s.toString().trim();
-                if (query.isEmpty()) {
-                    tvEmpty.setVisibility(View.VISIBLE);
-                    tvEmpty.setText("Search for gigs, textbooks, tutoring, and more.");
-                    rvResults.setAdapter(null);
-                    return;
-                }
-
-                List<DatabaseHelper.Post> results = dbHelper.searchPosts(query);
-                if (results.isEmpty()) {
-                    tvEmpty.setVisibility(View.VISIBLE);
-                    tvEmpty.setText("No results for \"" + query + "\".");
-                    rvResults.setAdapter(null);
-                } else {
-                    tvEmpty.setVisibility(View.GONE);
-                    rvResults.setAdapter(new PostAdapter(results));
-                }
+                refreshResults.run();
             }
         });
 

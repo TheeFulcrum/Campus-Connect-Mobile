@@ -13,7 +13,8 @@
         android:textSize="18sp"
         android:textStyle="bold"
         android:textColor="@color/colorPrimary"
-        android:background="@color/colorSurface" />
+        android:background="@color/colorSurface"
+        android:elevation="2dp" />
 
     <com.facebook.shimmer.ShimmerFrameLayout
         android:id="@+id/shimmer_view_container"
@@ -51,7 +52,7 @@
         android:layout_height="wrap_content"
         android:gravity="center"
         android:padding="40dp"
-        android:text="No posts yet for your campus and interests. Tap the + tab to post something!"
+        android:text="No posts yet for your campus and interests. Tap the Post tab to share something!"
         android:textColor="@color/colorTextMuted"
         android:visibility="gone" />
 

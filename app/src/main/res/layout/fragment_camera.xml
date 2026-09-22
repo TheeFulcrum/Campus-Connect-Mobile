@@ -9,25 +9,28 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="New Post"
+        android:text="Create a listing"
         android:textSize="24sp"
         android:textStyle="bold"
         android:textColor="@color/colorPrimary"
-        android:layout_marginBottom="20dp" />
-
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="180dp"
-        android:background="@color/colorBorder"
-        android:layout_marginBottom="16dp" />
+        android:layout_marginBottom="6dp" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Photo upload isn't wired up yet — this box is a placeholder."
-        android:textSize="12sp"
+        android:text="Share something useful with your campus."
+        android:textSize="13sp"
         android:textColor="@color/colorTextMuted"
         android:layout_marginBottom="20dp" />
+
+    <EditText
+        android:id="@+id/etPostTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="What are you offering?"
+        android:inputType="textCapSentences"
+        android:maxLines="1"
+        android:layout_marginBottom="12dp" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -42,6 +45,15 @@
         android:layout_height="wrap_content"
         android:entries="@array/post_categories"
         android:layout_marginBottom="16dp" />
+
+    <EditText
+        android:id="@+id/etPostPrice"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Price or rate (e.g. K80 or Free)"
+        android:inputType="text"
+        android:maxLines="1"
+        android:layout_marginBottom="12dp" />
 
     <EditText
         android:id="@+id/etPostCaption"

@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Campus Connect Brand Colors -->
+    <!-- Campus Connect brand palette matching the website -->
     <color name="colorPrimary">#243B6B</color>
     <color name="colorPrimaryDark">#182747</color>
     <color name="colorAccent">#FF6B45</color>
     <color name="colorAccentDark">#E0532B</color>
     <color name="colorSuccess">#2E9E6E</color>
-    <color name="colorBackground">#FFFFFF</color>
+
+    <color name="colorBackground">#F7F6F2</color>
     <color name="colorSurface">#FFFFFF</color>
     <color name="colorTextPrimary">#1D1B16</color>
     <color name="colorTextMuted">#6B6558</color>

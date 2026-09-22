@@ -20,6 +20,8 @@ public class CameraFragment extends Fragment {
     private static final String ARG_EMAIL = "arg_email";
 
     private Spinner spCategory;
+    private EditText etTitle;
+    private EditText etPrice;
     private EditText etCaption;
     private TextView tvError;
     private Button btnShare;
@@ -44,6 +46,8 @@ public class CameraFragment extends Fragment {
         dbHelper = new DatabaseHelper(requireContext());
 
         spCategory = view.findViewById(R.id.spPostCategory);
+        etTitle = view.findViewById(R.id.etPostTitle);
+        etPrice = view.findViewById(R.id.etPostPrice);
         etCaption = view.findViewById(R.id.etPostCaption);
         tvError = view.findViewById(R.id.tvPostError);
         btnShare = view.findViewById(R.id.btnSharePost);
@@ -54,11 +58,21 @@ public class CameraFragment extends Fragment {
     }
 
     private void attemptSharePost() {
-        String caption = etCaption.getText().toString().trim();
+        String title = etTitle.getText().toString().trim();
+        String price = etPrice.getText().toString().trim();
+        String description = etCaption.getText().toString().trim();
         String category = spCategory.getSelectedItem().toString();
 
-        if (TextUtils.isEmpty(caption)) {
-            showError("Please write a caption.");
+        if (TextUtils.isEmpty(title)) {
+            showError("Please add a listing title.");
+            return;
+        }
+        if (TextUtils.isEmpty(price)) {
+            showError("Please add a price or rate.");
+            return;
+        }
+        if (TextUtils.isEmpty(description)) {
+            showError("Please add a short description.");
             return;
         }
         if (email == null) {
@@ -73,9 +87,12 @@ public class CameraFragment extends Fragment {
         }
 
         hideError();
+        String caption = title + "\nPrice: " + price + "\n" + description;
         boolean success = dbHelper.insertPost(email, profile.username, profile.campusLocation, category, caption);
         if (success) {
             Toast.makeText(requireContext(), "Posted!", Toast.LENGTH_SHORT).show();
+            etTitle.setText("");
+            etPrice.setText("");
             etCaption.setText("");
         } else {
             showError("Something went wrong. Please try again.");

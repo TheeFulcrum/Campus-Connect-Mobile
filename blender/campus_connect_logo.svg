@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <g fill="#FF6B45" stroke="#FF6B45" stroke-linecap="round" stroke-linejoin="round" transform="translate(89.6 105.525) scale(0.65)">
+    <!-- Mortarboard top -->
+    <path d="M256 43 L470 166 L256 289 L42 166 Z" />
+
+    <!-- Flattened skull cap -->
+    <path d="M129 224 V260 L256 332 L383 260 V224 L256 298 Z" />
+
+    <!-- Tassel string -->
+    <path fill="none" stroke-width="6" d="M428 166 V238" />
+
+    <!-- Tassel strands -->
+    <path fill="none" stroke-width="2" d="M419 240 V295 M422 240 V295 M425 240 V295 M428 240 V295 M431 240 V295 M434 240 V295 M437 240 V295" />
+
+    <!-- Network links -->
+    <path fill="none" stroke-width="16" d="M256 295 L100 380 M256 295 V420 M256 295 L412 380" />
+
+    <!-- Tassel knot -->
+    <circle cx="428" cy="238" r="9" />
+
+    <!-- Network nodes -->
+    <circle cx="100" cy="380" r="28" />
+    <circle cx="256" cy="420" r="28" />
+    <circle cx="412" cy="380" r="28" />
+    <circle cx="256" cy="295" r="34" />
+  </g>
+</svg>

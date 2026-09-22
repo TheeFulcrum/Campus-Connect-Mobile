@@ -15,6 +15,7 @@ import java.util.List;
 public class ProfileSetupActivity extends AppCompatActivity {
 
     public static final String EXTRA_EMAIL = "extra_email";
+    public static final String EXTRA_AUTH_TOKEN = "extra_auth_token";
     public static final String EXTRA_EDIT_MODE = "extra_edit_mode"; // true when reached from Profile tab
 
     private CheckBox cbServices, cbGoods, cbAcademic, cbEvents, cbHousing, cbGigs;
@@ -22,6 +23,7 @@ public class ProfileSetupActivity extends AppCompatActivity {
     private Button btnContinue;
     private DatabaseHelper dbHelper;
     private String email;
+    private String authToken;
     private boolean editMode;
 
     @Override
@@ -31,6 +33,7 @@ public class ProfileSetupActivity extends AppCompatActivity {
 
         dbHelper = new DatabaseHelper(this);
         email = getIntent().getStringExtra(EXTRA_EMAIL);
+        authToken = getIntent().getStringExtra(EXTRA_AUTH_TOKEN);
         editMode = getIntent().getBooleanExtra(EXTRA_EDIT_MODE, false);
 
         cbServices = findViewById(R.id.cbServices);
@@ -86,9 +89,9 @@ public class ProfileSetupActivity extends AppCompatActivity {
         } else {
             // First-time setup right after sign-up: this is the first time
             // reaching Home, so start it fresh and clear the sign-up flow off the back stack.
-            new SessionManager(this).createSession(email);
-            android.content.Intent intent = new android.content.Intent(this, HomeActivity.class);
-            intent.putExtra(HomeActivity.EXTRA_EMAIL, email);
+            new SessionManager(this).createSession(email, authToken);
+            android.content.Intent intent = new android.content.Intent(this, SplashActivity.class);
+            intent.putExtra(SplashActivity.EXTRA_WELCOME_EMAIL, email);
             intent.setFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK | android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
             finish();
