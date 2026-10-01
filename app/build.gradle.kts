@@ -3,7 +3,7 @@ plugins {
 }
 
 val authApiBaseUrl = providers.gradleProperty("ccwApiBaseUrl")
-    .orElse("http://10.0.2.2:8000/")
+    .orElse("https://auth.campusconnect.ink/")
     .get()
 
 android {

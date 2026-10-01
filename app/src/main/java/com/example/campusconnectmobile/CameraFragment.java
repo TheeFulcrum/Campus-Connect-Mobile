@@ -1,6 +1,7 @@
 
 package com.example.campusconnectmobile;
 
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -8,9 +9,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -25,8 +29,15 @@ public class CameraFragment extends Fragment {
     private EditText etCaption;
     private TextView tvError;
     private Button btnShare;
+    private Button btnSelectPhoto;
+    private Button btnRemovePhoto;
+    private ImageView ivSelectedPhotoPreview;
+
     private DatabaseHelper dbHelper;
     private String email;
+    private Uri selectedImageUri;
+
+    private ActivityResultLauncher<String> photoPickerLauncher;
 
     public static CameraFragment newInstance(String email) {
         CameraFragment fragment = new CameraFragment();
@@ -34,6 +45,21 @@ public class CameraFragment extends Fragment {
         args.putString(ARG_EMAIL, email);
         fragment.setArguments(args);
         return fragment;
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        photoPickerLauncher = registerForActivityResult(
+                new ActivityResultContracts.GetContent(),
+                uri -> {
+                    if (uri != null) {
+                        selectedImageUri = uri;
+                        ivSelectedPhotoPreview.setImageURI(uri);
+                        ivSelectedPhotoPreview.setVisibility(View.VISIBLE);
+                        btnRemovePhoto.setVisibility(View.VISIBLE);
+                    }
+                });
     }
 
     @Nullable
@@ -51,10 +77,22 @@ public class CameraFragment extends Fragment {
         etCaption = view.findViewById(R.id.etPostCaption);
         tvError = view.findViewById(R.id.tvPostError);
         btnShare = view.findViewById(R.id.btnSharePost);
+        btnSelectPhoto = view.findViewById(R.id.btnSelectPhoto);
+        btnRemovePhoto = view.findViewById(R.id.btnRemovePhoto);
+        ivSelectedPhotoPreview = view.findViewById(R.id.ivSelectedPhotoPreview);
 
+        btnSelectPhoto.setOnClickListener(v -> photoPickerLauncher.launch("image/*"));
+        btnRemovePhoto.setOnClickListener(v -> removeSelectedPhoto());
         btnShare.setOnClickListener(v -> attemptSharePost());
 
         return view;
+    }
+
+    private void removeSelectedPhoto() {
+        selectedImageUri = null;
+        ivSelectedPhotoPreview.setImageURI(null);
+        ivSelectedPhotoPreview.setVisibility(View.GONE);
+        btnRemovePhoto.setVisibility(View.GONE);
     }
 
     private void attemptSharePost() {
@@ -88,12 +126,14 @@ public class CameraFragment extends Fragment {
 
         hideError();
         String caption = title + "\nPrice: " + price + "\n" + description;
-        boolean success = dbHelper.insertPost(email, profile.username, profile.campusLocation, category, caption);
+        String imageUriString = selectedImageUri != null ? selectedImageUri.toString() : null;
+        boolean success = dbHelper.insertPost(email, profile.username, profile.campusLocation, category, caption, imageUriString);
         if (success) {
             Toast.makeText(requireContext(), "Posted!", Toast.LENGTH_SHORT).show();
             etTitle.setText("");
             etPrice.setText("");
             etCaption.setText("");
+            removeSelectedPhoto();
         } else {
             showError("Something went wrong. Please try again.");
         }

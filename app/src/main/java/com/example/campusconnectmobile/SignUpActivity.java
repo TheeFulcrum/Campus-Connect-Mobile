@@ -44,10 +44,10 @@ public class SignUpActivity extends AppCompatActivity {
 
     private void attemptSignUp() {
         String username = etSignupUsername.getText().toString().trim();
-        String email = etSignupEmail.getText().toString().trim();
+        String email = etSignupEmail.getText().toString().trim().toLowerCase();
         String campusLocation = spSignupCampus.getSelectedItem().toString();
-        String password = etSignupPassword.getText().toString().trim();
-        String confirmPass = etConfirmPassword.getText().toString().trim();
+        String password = etSignupPassword.getText().toString();
+        String confirmPass = etConfirmPassword.getText().toString();
 
         if (TextUtils.isEmpty(username)) {
             showError("Please choose a username.");
@@ -61,12 +61,8 @@ public class SignUpActivity extends AppCompatActivity {
             showError("Please enter your university email.");
             return;
         }
-        if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            showError("Please enter a valid email address.");
-            return;
-        }
-        if (!email.toLowerCase().endsWith("@edenuniversity.education")) {
-            showError("Please use your university (@edenuniversity.education) email.");
+        if (!email.matches("^\\d{10}@edenuniversity\\.education$")) {
+            showError("Use your 10-digit ID@edenuniversity.education email.");
             return;
         }
         if (TextUtils.isEmpty(password)) {

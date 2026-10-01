@@ -2,6 +2,8 @@ package com.example.campusconnectmobile;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,10 +19,21 @@ import java.util.List;
 public class MessagesFragment extends Fragment implements ConversationAdapter.OnConversationClickListener {
 
     private static final String ARG_EMAIL = "arg_email";
+    private static final long POLL_INTERVAL_MS = 3000;
+
     private String userEmail;
     private DatabaseHelper dbHelper;
     private RecyclerView rvConversations;
     private TextView tvEmpty;
+
+    private final Handler pollHandler = new Handler(Looper.getMainLooper());
+    private final Runnable pollRunnable = new Runnable() {
+        @Override
+        public void run() {
+            loadConversations();
+            pollHandler.postDelayed(this, POLL_INTERVAL_MS);
+        }
+    };
 
     public static MessagesFragment newInstance(String email) {
         MessagesFragment fragment = new MessagesFragment();
@@ -50,7 +63,7 @@ public class MessagesFragment extends Fragment implements ConversationAdapter.On
     }
 
     private void loadConversations() {
-        if (userEmail == null) return;
+        if (userEmail == null || getContext() == null) return;
         List<Conversation> conversations = dbHelper.getConversationsFor(userEmail);
         
         if (conversations.isEmpty()) {
@@ -75,6 +88,12 @@ public class MessagesFragment extends Fragment implements ConversationAdapter.On
     @Override
     public void onResume() {
         super.onResume();
-        loadConversations();
+        pollHandler.post(pollRunnable);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        pollHandler.removeCallbacks(pollRunnable);
     }
 }

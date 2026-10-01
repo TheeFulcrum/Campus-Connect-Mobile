@@ -48,7 +48,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void attemptLogin() {
         String identifier = etEmail.getText().toString().trim();
-        String password = etPassword.getText().toString().trim();
+        String password = etPassword.getText().toString();
 
         if (TextUtils.isEmpty(identifier)) {
             showError("Please enter your email or username.");
@@ -57,12 +57,8 @@ public class MainActivity extends AppCompatActivity {
 
         // Basic validation if it looks like an email
         if (identifier.contains("@")) {
-            if (!Patterns.EMAIL_ADDRESS.matcher(identifier).matches()) {
+            if (!identifier.matches("^\\d{10}@edenuniversity\\.education$")) {
                 showError("Please enter a valid email address.");
-                return;
-            }
-            if (!identifier.toLowerCase().endsWith("@edenuniversity.education")) {
-                showError("Please use your university (@edenuniversity.education) email.");
                 return;
             }
         }

@@ -14,7 +14,7 @@ import java.util.List;
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String DB_NAME = "campus_connect.db";
-    private static final int DB_VERSION = 6;
+    private static final int DB_VERSION = 7;
 
     // Users table
     public static final String TABLE_USERS = "users";
@@ -37,6 +37,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String COL_POST_CAMPUS = "campus_location";
     public static final String COL_POST_CATEGORY = "category";
     public static final String COL_POST_CAPTION = "caption";
+    public static final String COL_POST_IMAGE_URI = "image_uri";
     public static final String COL_POST_CREATED_AT = "created_at";
 
     // Social interaction tables
@@ -91,6 +92,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 COL_POST_CAMPUS + " TEXT, " +
                 COL_POST_CATEGORY + " TEXT, " +
                 COL_POST_CAPTION + " TEXT, " +
+                COL_POST_IMAGE_URI + " TEXT, " +
                 COL_POST_CREATED_AT + " INTEGER)";
         db.execSQL(createPosts);
 
@@ -272,6 +274,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     // ---------------- Posts ----------------
 
     public boolean insertPost(String authorEmail, String authorUsername, String campus, String category, String caption) {
+        return insertPost(authorEmail, authorUsername, campus, category, caption, null);
+    }
+
+    public boolean insertPost(String authorEmail, String authorUsername, String campus, String category, String caption, String imageUri) {
         SQLiteDatabase db = getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(COL_POST_AUTHOR_EMAIL, authorEmail);
@@ -279,6 +285,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(COL_POST_CAMPUS, campus);
         values.put(COL_POST_CATEGORY, category);
         values.put(COL_POST_CAPTION, caption);
+        values.put(COL_POST_IMAGE_URI, imageUri);
         values.put(COL_POST_CREATED_AT, System.currentTimeMillis());
         long result = db.insert(TABLE_POSTS, null, values);
         return result != -1;
@@ -381,6 +388,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         post.campus = cursor.getString(cursor.getColumnIndexOrThrow(COL_POST_CAMPUS));
         post.category = cursor.getString(cursor.getColumnIndexOrThrow(COL_POST_CATEGORY));
         post.caption = cursor.getString(cursor.getColumnIndexOrThrow(COL_POST_CAPTION));
+        int imgIndex = cursor.getColumnIndex(COL_POST_IMAGE_URI);
+        if (imgIndex != -1) {
+            post.imageUri = cursor.getString(imgIndex);
+        }
         return post;
     }
 
@@ -389,6 +400,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         public String campus;
         public String category;
         public String caption;
+        public String imageUri;
     }
 
     // ---------------- Social interactions ----------------

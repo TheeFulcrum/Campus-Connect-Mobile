@@ -1,6 +1,8 @@
 package com.example.campusconnectmobile;
 
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -16,6 +18,7 @@ public class ChatActivity extends AppCompatActivity {
 
     public static final String EXTRA_PARTICIPANT_EMAIL = "participant_email";
     public static final String EXTRA_PARTICIPANT_NAME = "participant_name";
+    private static final long POLL_INTERVAL_MS = 2500;
 
     private String currentUserId;
     private String participantEmail;
@@ -30,6 +33,15 @@ public class ChatActivity extends AppCompatActivity {
     private Button btnSend;
     private ImageButton btnBack;
     private TextView tvChatTitle;
+
+    private final Handler pollHandler = new Handler(Looper.getMainLooper());
+    private final Runnable pollRunnable = new Runnable() {
+        @Override
+        public void run() {
+            refreshMessages();
+            pollHandler.postDelayed(this, POLL_INTERVAL_MS);
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,6 +71,31 @@ public class ChatActivity extends AppCompatActivity {
         rvMessages.setAdapter(adapter);
 
         btnSend.setOnClickListener(v -> sendMessage());
+    }
+
+    private void refreshMessages() {
+        if (currentUserId == null || participantEmail == null) return;
+        List<ChatMessage> latest = dbHelper.getMessagesBetween(currentUserId, participantEmail);
+        if (latest.size() > messageList.size()) {
+            int previousSize = messageList.size();
+            for (int i = previousSize; i < latest.size(); i++) {
+                messageList.add(latest.get(i));
+            }
+            adapter.notifyItemRangeInserted(previousSize, latest.size() - previousSize);
+            rvMessages.smoothScrollToPosition(messageList.size() - 1);
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        pollHandler.post(pollRunnable);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        pollHandler.removeCallbacks(pollRunnable);
     }
 
     private void sendMessage() {

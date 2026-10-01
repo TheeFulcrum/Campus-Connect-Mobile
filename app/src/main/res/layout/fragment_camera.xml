@@ -64,6 +64,40 @@
         android:minLines="3"
         android:layout_marginBottom="8dp" />
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="12dp">
+
+        <Button
+            android:id="@+id/btnSelectPhoto"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="Attach Photo" />
+
+        <Button
+            android:id="@+id/btnRemovePhoto"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Remove"
+            android:textColor="@color/colorError"
+            android:visibility="gone" />
+    </LinearLayout>
+
+    <ImageView
+        android:id="@+id/ivSelectedPhotoPreview"
+        android:layout_width="match_parent"
+        android:layout_height="140dp"
+        android:scaleType="centerCrop"
+        android:visibility="gone"
+        android:contentDescription="Selected Photo Preview"
+        android:layout_marginBottom="12dp" />
+
     <TextView
         android:id="@+id/tvPostError"
         android:layout_width="match_parent"

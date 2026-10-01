@@ -1,5 +1,6 @@
 package com.example.campusconnectmobile;
 
+import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -33,7 +34,16 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
         holder.tvCategory.setText(post.category);
         holder.tvCaption.setText(post.caption);
         holder.tvCampus.setText(post.campus);
-        holder.ivImage.setImageResource(imageForCategory(post.category));
+
+        if (post.imageUri != null && !post.imageUri.isEmpty()) {
+            try {
+                holder.ivImage.setImageURI(Uri.parse(post.imageUri));
+            } catch (Exception e) {
+                holder.ivImage.setImageResource(imageForCategory(post.category));
+            }
+        } else {
+            holder.ivImage.setImageResource(imageForCategory(post.category));
+        }
     }
 
     @Override
