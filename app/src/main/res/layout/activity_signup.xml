@@ -27,6 +27,15 @@
             android:textSize="14sp" />
 
         <EditText
+            android:id="@+id/etSignupRealName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Real name (optional)"
+            android:maxLength="40"
+            android:maxLines="1"
+            android:layout_marginBottom="16dp" />
+
+        <EditText
             android:id="@+id/etSignupUsername"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -41,6 +50,16 @@
             android:hint="University Email (.education)"
             android:inputType="textEmailAddress"
             android:maxLines="1"
+            android:layout_marginBottom="16dp" />
+
+        <EditText
+            android:id="@+id/etSignupBio"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Short bio (optional)"
+            android:inputType="textCapSentences|textMultiLine"
+            android:maxLength="150"
+            android:minLines="2"
             android:layout_marginBottom="16dp" />
 
         <TextView
@@ -61,7 +80,7 @@
             android:id="@+id/etSignupPassword"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Password (min 6 chars)"
+            android:hint="Password (min 8 characters)"
             android:inputType="textPassword"
             android:maxLines="1"
             android:layout_marginBottom="16dp" />

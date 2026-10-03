@@ -14,6 +14,7 @@ import androidx.appcompat.app.AppCompatActivity;
 public class SignUpActivity extends AppCompatActivity {
 
     private EditText etSignupUsername, etSignupEmail, etSignupPassword, etConfirmPassword;
+    private EditText etSignupRealName, etSignupBio;
     private Spinner spSignupCampus;
     private TextView tvSignupError, tvLoginLink;
     private Button btnSignup;
@@ -27,7 +28,9 @@ public class SignUpActivity extends AppCompatActivity {
         dbHelper = new DatabaseHelper(this);
 
         etSignupUsername = findViewById(R.id.etSignupUsername);
+        etSignupRealName = findViewById(R.id.etSignupRealName);
         etSignupEmail = findViewById(R.id.etSignupEmail);
+        etSignupBio = findViewById(R.id.etSignupBio);
         spSignupCampus = findViewById(R.id.spSignupCampus);
         etSignupPassword = findViewById(R.id.etSignupPassword);
         etConfirmPassword = findViewById(R.id.etConfirmPassword);
@@ -44,7 +47,9 @@ public class SignUpActivity extends AppCompatActivity {
 
     private void attemptSignUp() {
         String username = etSignupUsername.getText().toString().trim();
+        String realName = etSignupRealName.getText().toString().trim();
         String email = etSignupEmail.getText().toString().trim().toLowerCase();
+        String bio = etSignupBio.getText().toString().trim();
         String campusLocation = spSignupCampus.getSelectedItem().toString();
         String password = etSignupPassword.getText().toString();
         String confirmPass = etConfirmPassword.getText().toString();
@@ -80,10 +85,11 @@ public class SignUpActivity extends AppCompatActivity {
 
         hideError();
         btnSignup.setEnabled(false);
-        AuthApiClient.register(username, email, campusLocation, password, new AuthApiClient.Callback() {
+        AuthApiClient.register(username, email, campusLocation, password, realName, bio, new AuthApiClient.Callback() {
             @Override
             public void onSuccess(AuthApiClient.AuthResult result) {
-                dbHelper.cacheRemoteUser(result.email, result.username, result.campus);
+            dbHelper.cacheRemoteUser(result.email, result.username, result.campus,
+                result.realName, result.bio, result.avatar);
                 beginOtpVerification(result.email);
             }
 

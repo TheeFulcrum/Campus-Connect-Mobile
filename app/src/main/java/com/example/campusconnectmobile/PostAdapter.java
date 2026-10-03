@@ -1,19 +1,24 @@
 package com.example.campusconnectmobile;
 
 import android.net.Uri;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
+import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder> {
 
     private final List<DatabaseHelper.Post> posts;
+    private final Set<Integer> likedPostIds = new HashSet<>();
 
     public PostAdapter(List<DatabaseHelper.Post> posts) {
         this.posts = posts;
@@ -34,6 +39,27 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
         holder.tvCategory.setText(post.category);
         holder.tvCaption.setText(post.caption);
         holder.tvCampus.setText(post.campus);
+
+        boolean isLiked = likedPostIds.contains(post.id);
+        holder.tvLikeCount.setText(String.valueOf(isLiked ? 1 : 0));
+        holder.btnLike.setSelected(isLiked);
+
+        holder.btnLike.setOnClickListener(v -> {
+            if (likedPostIds.contains(post.id)) {
+                likedPostIds.remove(post.id);
+            } else {
+                likedPostIds.add(post.id);
+            }
+            notifyItemChanged(position);
+        });
+
+        holder.btnMessage.setOnClickListener(v -> {
+            Intent intent = new Intent(v.getContext(), ChatActivity.class);
+            intent.putExtra("conversation_id", "conv_" + post.id);
+            intent.putExtra("partner_name", post.username);
+            intent.putExtra("listing_title", post.category + " listing");
+            v.getContext().startActivity(intent);
+        });
 
         if (post.imageUri != null && !post.imageUri.isEmpty()) {
             try {
@@ -65,8 +91,10 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
     }
 
     static class PostViewHolder extends RecyclerView.ViewHolder {
-        TextView tvAuthor, tvCategory, tvCaption, tvCampus;
+        TextView tvAuthor, tvCategory, tvCaption, tvCampus, tvLikeCount;
         ImageView ivImage;
+        ImageButton btnLike;
+        View btnMessage;
 
         public PostViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -74,7 +102,10 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
             tvCategory = itemView.findViewById(R.id.tvPostCategory);
             tvCaption = itemView.findViewById(R.id.tvPostCaption);
             tvCampus = itemView.findViewById(R.id.tvPostCampus);
+            tvLikeCount = itemView.findViewById(R.id.tvLikeCount);
             ivImage = itemView.findViewById(R.id.ivPostImage);
+            btnLike = itemView.findViewById(R.id.btnLikePost);
+            btnMessage = itemView.findViewById(R.id.btnMessageSeller);
         }
     }
 }

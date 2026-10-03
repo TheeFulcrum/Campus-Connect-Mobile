@@ -10,11 +10,14 @@
         android:orientation="vertical"
         android:padding="24dp">
 
-        <View
-            android:layout_width="80dp"
-            android:layout_height="80dp"
+        <ImageView
+            android:id="@+id/ivProfileAvatar"
+            android:layout_width="96dp"
+            android:layout_height="96dp"
             android:layout_gravity="center"
             android:layout_marginBottom="16dp"
+            android:contentDescription="Change profile picture"
+            android:scaleType="centerCrop"
             android:background="@drawable/bg_avatar_circle" />
 
         <TextView
@@ -25,6 +28,14 @@
             android:gravity="center"
             android:textSize="20sp"
             android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvProfileRealName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            android:gravity="center"
+            android:textColor="@color/colorTextMuted" />
 
         <TextView
             android:id="@+id/tvProfileEmail"
@@ -49,6 +60,23 @@
             android:layout_marginBottom="28dp"
             android:gravity="center"
             android:textColor="@color/colorTextMuted" />
+
+        <TextView
+            android:id="@+id/tvProfileBio"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp"
+            android:gravity="center"
+            android:textColor="@color/colorTextMuted" />
+
+        <Button
+            android:id="@+id/btnEditProfile"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            android:backgroundTint="@color/colorAccent"
+            android:text="Edit Profile"
+            android:textColor="@color/white" />
 
         <TextView
             android:layout_width="wrap_content"

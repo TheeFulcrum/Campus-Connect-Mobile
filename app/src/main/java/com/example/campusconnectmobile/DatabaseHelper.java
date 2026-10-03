@@ -14,7 +14,7 @@ import java.util.List;
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String DB_NAME = "campus_connect.db";
-    private static final int DB_VERSION = 7;
+    private static final int DB_VERSION = 8;
 
     // Users table
     public static final String TABLE_USERS = "users";
@@ -28,6 +28,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String COL_PREFERENCES = "preferences"; // comma-separated
     public static final String COL_PROFILE_PICTURE = "profile_picture";
     public static final String COL_BIO = "bio";
+    public static final String COL_REAL_NAME = "real_name";
 
     // Posts table
     public static final String TABLE_POSTS = "posts";
@@ -82,7 +83,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 COL_CAMPUS + " TEXT, " +
                 COL_PREFERENCES + " TEXT, " +
                 COL_PROFILE_PICTURE + " TEXT, " +
-                COL_BIO + " TEXT)";
+                COL_BIO + " TEXT, " +
+                COL_REAL_NAME + " TEXT)";
         db.execSQL(createUsers);
 
         String createPosts = "CREATE TABLE " + TABLE_POSTS + " (" +
@@ -138,16 +140,19 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        // Prototype-stage upgrade: drop and recreate.
-        // NOTE: wipes existing data on schema changes — fine for dev,
-        // needs real ALTER TABLE migrations before any real users exist.
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_USERS);
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_POSTS);
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_MESSAGES);
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_COMMENTS);
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_LIKES);
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_FOLLOWS);
-        onCreate(db);
+        if (oldVersion < 8 && !hasColumn(db, TABLE_USERS, COL_REAL_NAME)) {
+            db.execSQL("ALTER TABLE " + TABLE_USERS + " ADD COLUMN " + COL_REAL_NAME + " TEXT");
+        }
+    }
+
+    private boolean hasColumn(SQLiteDatabase db, String table, String column) {
+        try (Cursor cursor = db.rawQuery("PRAGMA table_info(" + table + ")", null)) {
+            int nameColumn = cursor.getColumnIndex("name");
+            while (cursor.moveToNext()) {
+                if (nameColumn >= 0 && column.equals(cursor.getString(nameColumn))) return true;
+            }
+        }
+        return false;
     }
 
     // ---------------- Users ----------------
@@ -164,10 +169,18 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     public boolean cacheRemoteUser(String email, String username, String campusLocation) {
+        return cacheRemoteUser(email, username, campusLocation, "", "", "");
+    }
+
+    public boolean cacheRemoteUser(String email, String username, String campusLocation,
+                                   String realName, String bio, String avatar) {
         SQLiteDatabase db = getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(COL_USERNAME, username);
         values.put(COL_CAMPUS, campusLocation);
+        values.put(COL_REAL_NAME, realName);
+        values.put(COL_BIO, bio);
+        values.put(COL_PROFILE_PICTURE, avatar);
         int rows = db.update(TABLE_USERS, values, COL_EMAIL + "=?", new String[]{email});
         if (rows > 0) return true;
 
@@ -235,8 +248,16 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     public boolean updateProfile(String email, String profilePicture, String bio) {
+        return updateProfile(email, "", "", "", bio, profilePicture);
+    }
+
+    public boolean updateProfile(String email, String username, String realName, String campus,
+                                 String bio, String profilePicture) {
         SQLiteDatabase db = getWritableDatabase();
         ContentValues values = new ContentValues();
+        if (username != null && !username.isEmpty()) values.put(COL_USERNAME, username);
+        if (realName != null) values.put(COL_REAL_NAME, realName);
+        if (campus != null && !campus.isEmpty()) values.put(COL_CAMPUS, campus);
         values.put(COL_PROFILE_PICTURE, profilePicture);
         values.put(COL_BIO, bio);
         return db.update(TABLE_USERS, values, COL_EMAIL + "=?", new String[]{email}) > 0;
@@ -248,13 +269,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         public String preferences;
         public String profilePicture;
         public String bio;
+        public String realName;
     }
 
     public UserProfile getProfile(String email) {
         SQLiteDatabase db = getReadableDatabase();
         Cursor cursor = db.rawQuery(
                 "SELECT " + COL_USERNAME + ", " + COL_CAMPUS + ", " + COL_PREFERENCES +
-                ", " + COL_PROFILE_PICTURE + ", " + COL_BIO +
+                ", " + COL_PROFILE_PICTURE + ", " + COL_BIO + ", " + COL_REAL_NAME +
                         " FROM " + TABLE_USERS + " WHERE " + COL_EMAIL + "=?",
                 new String[]{email});
 
@@ -266,6 +288,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             profile.preferences = cursor.getString(2);
             profile.profilePicture = cursor.getString(3);
             profile.bio = cursor.getString(4);
+            profile.realName = cursor.getString(5);
         }
         cursor.close();
         return profile;
@@ -295,7 +318,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         List<Post> posts = new ArrayList<>();
         String[] categories = preferencesCsv == null || preferencesCsv.isEmpty()
             ? new String[]{"tutoring", "furniture", "creative", "electronics", "books", "repairs", "beauty", "campus-help"}
-            : preferencesCsv.split(",");
+            : FeedCategoryMapper.expand(preferencesCsv.split(","));
 
         addDemoPosts(posts, campusLocation, categories);
         String placeholders = TextUtils.join(",", Collections.nCopies(categories.length, "?"));
@@ -307,7 +330,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = getReadableDatabase();
         Cursor cursor = db.rawQuery(
                 "SELECT * FROM " + TABLE_POSTS +
-                        " WHERE " + COL_POST_CAMPUS + "=? AND " + COL_POST_CATEGORY + " IN (" + placeholders + ")" +
+                        " WHERE " + COL_POST_CAMPUS + "=? AND LOWER(" + COL_POST_CATEGORY + ") IN (" + placeholders + ")" +
                         " ORDER BY " + COL_POST_CREATED_AT + " DESC",
                 args);
 
@@ -343,6 +366,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     private Post demoPost(String username, String campus, String category, String caption) {
         Post post = new Post();
+        post.id = username.hashCode() ^ category.hashCode();
         post.username = username;
         post.campus = campus;
         post.category = category;
@@ -384,6 +408,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     private Post mapCursorToPost(Cursor cursor) {
         Post post = new Post();
+        post.id = cursor.getInt(cursor.getColumnIndexOrThrow(COL_POST_ID));
         post.username = cursor.getString(cursor.getColumnIndexOrThrow(COL_POST_AUTHOR_USERNAME));
         post.campus = cursor.getString(cursor.getColumnIndexOrThrow(COL_POST_CAMPUS));
         post.category = cursor.getString(cursor.getColumnIndexOrThrow(COL_POST_CATEGORY));
@@ -396,6 +421,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     public static class Post {
+        public int id;
         public String username;
         public String campus;
         public String category;

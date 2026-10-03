@@ -2,17 +2,19 @@ package com.example.campusconnectmobile;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
-
 public class HomeActivity extends AppCompatActivity {
 
     public static final String EXTRA_EMAIL = "extra_email";
 
-    private BottomNavigationView bottomNav;
+    private LinearLayout bottomNav;
     private String email;
     private SessionManager sessionManager;
     private int currentSelectedTabId = R.id.nav_home;
@@ -38,31 +40,57 @@ public class HomeActivity extends AppCompatActivity {
 
         // Initialize views
         bottomNav = findViewById(R.id.bottomNav);
+        if (savedInstanceState != null) {
+            currentSelectedTabId = savedInstanceState.getInt("selected_tab_id", R.id.nav_home);
+        }
 
         // Default tab on launch
         if (savedInstanceState == null) {
             loadFragment(HomeFeedFragment.newInstance(email));
-        } else {
-            // Restore previously selected tab if activity is recreated
-            currentSelectedTabId = bottomNav.getSelectedItemId();
         }
+        setupBottomNavigation();
+        updateNavigationAppearance();
+    }
 
-        // Set up bottom navigation listener
-        bottomNav.setOnItemSelectedListener(item -> {
-            int id = item.getItemId();
+    private void setupBottomNavigation() {
+        int[] destinationIds = {R.id.nav_home, R.id.nav_adverts, R.id.nav_search,
+                R.id.nav_camera, R.id.nav_messages, R.id.nav_profile};
+        for (int destinationId : destinationIds) {
+            View destination = bottomNav.findViewById(destinationId);
+            destination.setOnClickListener(view -> selectTab(view.getId()));
+        }
+    }
 
-            // Prevent reloading the same fragment
-            if (currentSelectedTabId == id) {
-                return true;
+    private void selectTab(int destinationId) {
+        if (destinationId == currentSelectedTabId) return;
+        if (handleNavigation(destinationId)) {
+            currentSelectedTabId = destinationId;
+            updateNavigationAppearance();
+        }
+    }
+
+    private void updateNavigationAppearance() {
+        int[] destinationIds = {R.id.nav_home, R.id.nav_adverts, R.id.nav_search,
+                R.id.nav_camera, R.id.nav_messages, R.id.nav_profile};
+        int[] iconIds = {R.id.ivNavHome, R.id.ivNavAdverts, R.id.ivNavSearch,
+                R.id.ivNavCamera, R.id.ivNavMessages, R.id.ivNavProfile};
+        int[] labelIds = {R.id.tvNavHome, R.id.tvNavAdverts, R.id.tvNavSearch,
+                R.id.tvNavCamera, R.id.tvNavMessages, R.id.tvNavProfile};
+        int activeColor = getColor(R.color.colorAccent);
+        int inactiveColor = getColor(R.color.colorTextMuted);
+
+        for (int i = 0; i < destinationIds.length; i++) {
+            boolean selected = destinationIds[i] == currentSelectedTabId;
+            View destination = bottomNav.findViewById(destinationIds[i]);
+            destination.setSelected(selected);
+            ImageView icon = bottomNav.findViewById(iconIds[i]);
+            TextView label = bottomNav.findViewById(labelIds[i]);
+            if (destinationIds[i] != R.id.nav_camera) {
+                icon.setColorFilter(selected ? activeColor : inactiveColor);
             }
-
-            // Handle navigation based on selected item
-            boolean handled = handleNavigation(id);
-            if (handled) {
-                currentSelectedTabId = id;
-            }
-            return handled;
-        });
+            label.setTextColor(selected ? activeColor : inactiveColor);
+            label.setTypeface(null, selected ? android.graphics.Typeface.BOLD : android.graphics.Typeface.NORMAL);
+        }
     }
 
     /**
@@ -73,6 +101,8 @@ public class HomeActivity extends AppCompatActivity {
 
         if (menuItemId == R.id.nav_home) {
             fragment = HomeFeedFragment.newInstance(email);
+        } else if (menuItemId == R.id.nav_adverts) {
+            fragment = new AdvertsFragment();
         } else if (menuItemId == R.id.nav_search) {
             fragment = SearchFragment.newInstance(email);
         } else if (menuItemId == R.id.nav_camera) {
@@ -152,7 +182,7 @@ public class HomeActivity extends AppCompatActivity {
     protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
         currentSelectedTabId = savedInstanceState.getInt("selected_tab_id", R.id.nav_home);
-        bottomNav.setSelectedItemId(currentSelectedTabId);
+        updateNavigationAppearance();
     }
 
     @Override
@@ -186,7 +216,7 @@ public class HomeActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         if (currentSelectedTabId != R.id.nav_home) {
-            bottomNav.setSelectedItemId(R.id.nav_home);
+            selectTab(R.id.nav_home);
         } else {
             super.onBackPressed();
         }

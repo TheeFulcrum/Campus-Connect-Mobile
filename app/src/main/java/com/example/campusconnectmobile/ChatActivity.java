@@ -100,7 +100,7 @@ public class ChatActivity extends AppCompatActivity {
 
     private void sendMessage() {
         String text = etMessage.getText().toString().trim();
-        if (text.isEmpty()) return;
+        if (text.isEmpty() || currentUserId == null || participantEmail == null) return;
 
         if (dbHelper.insertMessage(currentUserId, participantEmail, text)) {
             ChatMessage newMessage = new ChatMessage(currentUserId, participantEmail, text, System.currentTimeMillis());

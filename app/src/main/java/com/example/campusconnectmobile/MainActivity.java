@@ -73,7 +73,8 @@ public class MainActivity extends AppCompatActivity {
         AuthApiClient.login(identifier, password, new AuthApiClient.Callback() {
             @Override
             public void onSuccess(AuthApiClient.AuthResult result) {
-                dbHelper.cacheRemoteUser(result.email, result.username, result.campus);
+                dbHelper.cacheRemoteUser(result.email, result.username, result.campus,
+                    result.realName, result.bio, result.avatar);
                 Intent intent = continueToPreferences
                         ? new Intent(MainActivity.this, ProfileSetupActivity.class)
                         : new Intent(MainActivity.this, HomeActivity.class);

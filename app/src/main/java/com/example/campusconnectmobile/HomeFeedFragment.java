@@ -20,6 +20,8 @@ import java.util.List;
 public class HomeFeedFragment extends Fragment {
 
     private static final String ARG_EMAIL = "arg_email";
+    private final Handler feedHandler = new Handler(Looper.getMainLooper());
+    private Runnable loadRunnable;
 
     public static HomeFeedFragment newInstance(String email) {
         HomeFeedFragment fragment = new HomeFeedFragment();
@@ -47,32 +49,43 @@ public class HomeFeedFragment extends Fragment {
         String email = getArguments() != null ? getArguments().getString(ARG_EMAIL) : null;
         DatabaseHelper dbHelper = new DatabaseHelper(requireContext());
 
-        if (email != null) {
-            DatabaseHelper.UserProfile profile = dbHelper.getProfile(email);
-            if (profile != null && profile.username != null) {
-                tvHeader.setText(profile.campusLocation + " Feed");
-
-                // Simulate data loading delay
-                new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                    List<DatabaseHelper.Post> posts = dbHelper.getFeedForUser(
-                            profile.campusLocation, profile.preferences);
-
-                    // Stop and hide shimmer
-                    shimmerLayout.stopShimmer();
-                    shimmerLayout.setVisibility(View.GONE);
-
-                    if (posts.isEmpty()) {
-                        tvEmpty.setVisibility(View.VISIBLE);
-                        rvFeed.setVisibility(View.GONE);
-                    } else {
-                        tvEmpty.setVisibility(View.GONE);
-                        rvFeed.setVisibility(View.VISIBLE);
-                        rvFeed.setAdapter(new PostAdapter(posts));
-                    }
-                }, 1500);
-            }
+        DatabaseHelper.UserProfile profile = email == null ? null : dbHelper.getProfile(email);
+        if (profile != null && profile.username != null) {
+            tvHeader.setText(profile.campusLocation + " Feed");
+            loadRunnable = () -> {
+                if (!isAdded() || getView() == null) return;
+                List<DatabaseHelper.Post> posts = dbHelper.getFeedForUser(
+                        profile.campusLocation, profile.preferences);
+                finishLoading(shimmerLayout, tvEmpty, rvFeed, posts);
+            };
+            feedHandler.postDelayed(loadRunnable, 300);
+        } else {
+            finishLoading(shimmerLayout, tvEmpty, rvFeed, java.util.Collections.emptyList());
+            tvEmpty.setText("Complete your profile to see campus listings.");
         }
 
         return view;
+    }
+
+    private void finishLoading(ShimmerFrameLayout shimmerLayout, TextView tvEmpty,
+                               RecyclerView rvFeed, List<DatabaseHelper.Post> posts) {
+        shimmerLayout.stopShimmer();
+        shimmerLayout.setVisibility(View.GONE);
+        if (posts.isEmpty()) {
+            tvEmpty.setVisibility(View.VISIBLE);
+            rvFeed.setVisibility(View.GONE);
+        } else {
+            tvEmpty.setVisibility(View.GONE);
+            rvFeed.setVisibility(View.VISIBLE);
+            rvFeed.setAdapter(new PostAdapter(posts));
+        }
+    }
+
+    @Override
+    public void onDestroyView() {
+        if (loadRunnable != null) {
+            feedHandler.removeCallbacks(loadRunnable);
+        }
+        super.onDestroyView();
     }
 }

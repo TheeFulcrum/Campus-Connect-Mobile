@@ -11,18 +11,73 @@
         android:layout_height="match_parent"
         android:layout_above="@+id/bottomNav" />
 
-    <com.google.android.material.bottomnavigation.BottomNavigationView
+    <LinearLayout
         android:id="@+id/bottomNav"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="68dp"
         android:layout_alignParentBottom="true"
         android:background="@color/colorSurface"
-        android:paddingTop="6dp"
-        android:paddingBottom="6dp"
-        app:menu="@menu/bottom_nav_menu"
-        app:itemIconTint="@color/nav_icon_color"
-        app:itemTextColor="@color/nav_text_color"
-        app:itemRippleColor="@color/colorAccent"
-        app:itemActiveIndicatorStyle="@style/Widget.Material3.BottomNavigationView.ActiveIndicator" />
+        android:elevation="8dp"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:paddingStart="4dp"
+        android:paddingEnd="4dp"
+        android:paddingTop="4dp"
+        android:paddingBottom="4dp">
+
+        <LinearLayout
+            android:id="@+id/nav_home"
+            style="@style/CampusConnectBottomNavItem"
+            android:contentDescription="Home">
+            <ImageView android:id="@+id/ivNavHome" style="@style/CampusConnectBottomNavIcon" android:src="@drawable/ic_tab_home" />
+            <TextView android:id="@+id/tvNavHome" style="@style/CampusConnectBottomNavLabel" android:text="Home" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/nav_adverts"
+            style="@style/CampusConnectBottomNavItem"
+            android:contentDescription="Adverts">
+            <ImageView android:id="@+id/ivNavAdverts" style="@style/CampusConnectBottomNavIcon" android:src="@drawable/ic_tab_adverts" />
+            <TextView android:id="@+id/tvNavAdverts" style="@style/CampusConnectBottomNavLabel" android:text="Adverts" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/nav_search"
+            style="@style/CampusConnectBottomNavItem"
+            android:contentDescription="Search">
+            <ImageView android:id="@+id/ivNavSearch" style="@style/CampusConnectBottomNavIcon" android:src="@drawable/ic_tab_search" />
+            <TextView android:id="@+id/tvNavSearch" style="@style/CampusConnectBottomNavLabel" android:text="Search" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/nav_camera"
+            style="@style/CampusConnectBottomNavItem"
+            android:contentDescription="Post">
+            <ImageView
+                android:id="@+id/ivNavCamera"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:background="@drawable/bg_nav_post"
+                android:padding="6dp"
+                android:src="@drawable/ic_tab_camera" />
+            <TextView android:id="@+id/tvNavCamera" style="@style/CampusConnectBottomNavLabel" android:text="Post" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/nav_messages"
+            style="@style/CampusConnectBottomNavItem"
+            android:contentDescription="Messages">
+            <ImageView android:id="@+id/ivNavMessages" style="@style/CampusConnectBottomNavIcon" android:src="@drawable/ic_tab_messages" />
+            <TextView android:id="@+id/tvNavMessages" style="@style/CampusConnectBottomNavLabel" android:text="Messages" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/nav_profile"
+            style="@style/CampusConnectBottomNavItem"
+            android:contentDescription="Profile">
+            <ImageView android:id="@+id/ivNavProfile" style="@style/CampusConnectBottomNavIcon" android:src="@drawable/ic_tab_profile" />
+            <TextView android:id="@+id/tvNavProfile" style="@style/CampusConnectBottomNavLabel" android:text="Profile" />
+        </LinearLayout>
+    </LinearLayout>
 
 </RelativeLayout>

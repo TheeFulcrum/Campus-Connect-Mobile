@@ -97,7 +97,8 @@ public class OtpLoginActivity extends AppCompatActivity {
         AuthApiClient.verifyOtp(email, code, new AuthApiClient.Callback() {
             @Override
             public void onSuccess(AuthApiClient.AuthResult result) {
-                dbHelper.cacheRemoteUser(result.email, result.username, result.campus);
+                dbHelper.cacheRemoteUser(result.email, result.username, result.campus,
+                    result.realName, result.bio, result.avatar);
                 if (continueToLogin) {
                     Intent intent = new Intent(OtpLoginActivity.this, MainActivity.class);
                     intent.putExtra(MainActivity.EXTRA_PREFILLED_IDENTIFIER, result.email);

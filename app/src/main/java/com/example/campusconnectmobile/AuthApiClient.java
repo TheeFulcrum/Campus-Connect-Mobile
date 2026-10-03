@@ -22,12 +22,19 @@ public final class AuthApiClient {
         public final String email;
         public final String campus;
         public final String token;
+        public final String realName;
+        public final String bio;
+        public final String avatar;
 
-        AuthResult(String username, String email, String campus, String token) {
+        AuthResult(String username, String email, String campus, String token,
+                   String realName, String bio, String avatar) {
             this.username = username;
             this.email = email;
             this.campus = campus;
             this.token = token;
+            this.realName = realName;
+            this.bio = bio;
+            this.avatar = avatar;
         }
     }
 
@@ -56,6 +63,11 @@ public final class AuthApiClient {
     }
 
     public static void register(String username, String email, String campus, String password, Callback callback) {
+        register(username, email, campus, password, "", "", callback);
+    }
+
+    public static void register(String username, String email, String campus, String password,
+                                String realName, String bio, Callback callback) {
         JSONObject body = new JSONObject();
         try {
             body.put("action", "register");
@@ -63,11 +75,30 @@ public final class AuthApiClient {
             body.put("email", email);
             body.put("campus", campus);
             body.put("password", password);
+            body.put("real_name", realName);
+            body.put("bio", bio);
         } catch (Exception exception) {
             callback.onError("Unable to prepare registration request.");
             return;
         }
         send(body, null, callback);
+    }
+
+    public static void updateProfile(String username, String realName, String campus, String bio,
+                                     String avatar, String token, Callback callback) {
+        JSONObject body = new JSONObject();
+        try {
+            body.put("action", "update_profile");
+            body.put("username", username);
+            body.put("real_name", realName);
+            body.put("campus", campus);
+            body.put("bio", bio);
+            body.put("avatar", avatar == null ? "" : avatar);
+        } catch (Exception exception) {
+            callback.onError("Unable to prepare profile update.");
+            return;
+        }
+        send(body, token, callback);
     }
 
     public static void requestOtp(String email, Callback callback) {
@@ -146,14 +177,17 @@ public final class AuthApiClient {
 
                 JSONObject user = json.optJSONObject("user");
                 if (user == null) {
-                    postSuccess(callback, new AuthResult(null, null, null, null));
+                    postSuccess(callback, new AuthResult(null, null, null, null, null, null, null));
                     return;
                 }
                 postSuccess(callback, new AuthResult(
                         user.optString("username"),
                         user.optString("email"),
                         user.optString("campus"),
-                        json.optString("token", null)
+                        json.optString("token", null),
+                        user.optString("real_name", ""),
+                        user.optString("bio", ""),
+                        user.optString("avatar", "")
                 ));
             } catch (Exception exception) {
                 postError(callback, "Unable to reach the Campus Connect server.");

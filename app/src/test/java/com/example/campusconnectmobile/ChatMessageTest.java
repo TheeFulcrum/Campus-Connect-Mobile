@@ -12,9 +12,9 @@ public class ChatMessageTest {
         long now = System.currentTimeMillis();
         ChatMessage message = new ChatMessage("sender@edenuniversity.education", "receiver@edenuniversity.education", "Hello world!", now);
 
-        assertEquals("sender@edenuniversity.education", message.sender);
-        assertEquals("receiver@edenuniversity.education", message.receiver);
-        assertEquals("Hello world!", message.text);
+        assertEquals("sender@edenuniversity.education", message.senderEmail);
+        assertEquals("receiver@edenuniversity.education", message.receiverEmail);
+        assertEquals("Hello world!", message.messageText);
         assertEquals(now, message.timestamp);
     }
 
@@ -26,6 +26,6 @@ public class ChatMessageTest {
         assertEquals("alex@edenuniversity.education", conversation.participantEmail);
         assertEquals("Alex M.", conversation.participantUsername);
         assertEquals("Latest message text", conversation.lastMessage);
-        assertEquals(now, conversation.timestamp);
+        assertEquals(now, conversation.lastTimestamp);
     }
 }
