@@ -1,18 +1,15 @@
 package com.example.campusconnectmobile;
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.net.Uri;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
-import android.util.Base64;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.Spinner;
-import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -21,37 +18,74 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatDelegate;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.viewpager2.widget.ViewPager2;
 
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
+import com.bumptech.glide.Glide;
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.tabs.TabLayout;
+import com.google.android.material.tabs.TabLayoutMediator;
 
-public class ProfileFragment extends Fragment {
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+
+public class ProfileFragment extends Fragment implements FollowListBottomSheet.FollowListListener {
 
     private static final String ARG_EMAIL = "arg_email";
+    private static final String ARG_USERNAME = "arg_username";
+
     private String email;
-    private String avatarData = "";
-    private DatabaseHelper dbHelper;
+    private String targetUsername;
     private SessionManager sessionManager;
-    private TextView tvUsername, tvRealName, tvEmail, tvCampus, tvPreferences, tvBio;
+    private ProfileCacheDbHelper cacheDb;
+    private Profile profile;
+
+    private androidx.swiperefreshlayout.widget.SwipeRefreshLayout swipeProfile;
+    private TextView tvTopUsername;
+    private TextView tvNote;
     private ImageView ivAvatar;
-    private ActivityResultLauncher<String> avatarPickerLauncher;
+    private TextView tvCountListings;
+    private TextView tvCountFollowers;
+    private TextView tvCountFollowing;
+    private TextView tvDisplayName;
+    private TextView tvBio;
+    private TextView tvLink;
+    private TextView tvCampus;
+    private View layoutOwnActions;
+    private View layoutOtherActions;
+    private MaterialButton btnEditProfile;
+    private MaterialButton btnViewArchive;
+    private MaterialButton btnFollow;
+    private MaterialButton btnMessage;
+    private ImageButton btnCreate;
+    private ImageButton btnMenu;
+    private ImageButton btnOtherMenu;
+    private RecyclerView rvCollections;
+    private ViewPager2 profilePager;
+    private CollectionsAdapter collectionsAdapter;
+    private final List<Collection> collections = new ArrayList<>();
+
+    private final ActivityResultLauncher<String> avatarPickerLauncher =
+            registerForActivityResult(new ActivityResultContracts.GetContent(), uri -> {
+                if (uri != null) uploadAvatar(uri);
+            });
 
     public static ProfileFragment newInstance(String email) {
+        return newInstance(email, null);
+    }
+
+    public static ProfileFragment newInstance(String email, String username) {
         ProfileFragment fragment = new ProfileFragment();
         Bundle args = new Bundle();
         args.putString(ARG_EMAIL, email);
+        args.putString(ARG_USERNAME, username);
         fragment.setArguments(args);
         return fragment;
-    }
-
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        avatarPickerLauncher = registerForActivityResult(new ActivityResultContracts.GetContent(), uri -> {
-            if (uri != null) updateAvatar(uri);
-        });
     }
 
     @Nullable
@@ -59,203 +93,467 @@ public class ProfileFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_profile, container, false);
-
-        email = getArguments() != null ? getArguments().getString(ARG_EMAIL) : null;
-        dbHelper = new DatabaseHelper(requireContext());
+        email = getArguments() == null ? null : getArguments().getString(ARG_EMAIL);
+        targetUsername = getArguments() == null ? null : getArguments().getString(ARG_USERNAME);
         sessionManager = new SessionManager(requireContext());
+        cacheDb = new ProfileCacheDbHelper(requireContext());
 
-        tvUsername = view.findViewById(R.id.tvProfileUsername);
-        tvRealName = view.findViewById(R.id.tvProfileRealName);
-        tvEmail = view.findViewById(R.id.tvProfileEmail);
-        tvCampus = view.findViewById(R.id.tvProfileCampus);
-        tvPreferences = view.findViewById(R.id.tvProfilePreferences);
-        tvBio = view.findViewById(R.id.tvProfileBio);
+        swipeProfile = view.findViewById(R.id.swipeProfile);
+        tvTopUsername = view.findViewById(R.id.tvProfileTopUsername);
+        tvNote = view.findViewById(R.id.tvProfileNote);
         ivAvatar = view.findViewById(R.id.ivProfileAvatar);
-        Button btnEditProfile = view.findViewById(R.id.btnEditProfile);
-        Button btnEditPreferences = view.findViewById(R.id.btnEditPreferences);
-        Button btnLogout = view.findViewById(R.id.btnLogout);
-        Button btnLight = view.findViewById(R.id.btnLightTheme);
-        Button btnDark = view.findViewById(R.id.btnDarkTheme);
-        
-        renderProfile();
-        ivAvatar.setOnClickListener(v -> avatarPickerLauncher.launch("image/*"));
-        btnEditProfile.setOnClickListener(v -> showEditProfileDialog());
+        tvCountListings = view.findViewById(R.id.tvCountListings);
+        tvCountFollowers = view.findViewById(R.id.tvCountFollowers);
+        tvCountFollowing = view.findViewById(R.id.tvCountFollowing);
+        tvDisplayName = view.findViewById(R.id.tvProfileDisplayName);
+        tvBio = view.findViewById(R.id.tvProfileBio);
+        tvLink = view.findViewById(R.id.tvProfileLink);
+        tvCampus = view.findViewById(R.id.tvProfileCampus);
+        layoutOwnActions = view.findViewById(R.id.layoutOwnActions);
+        layoutOtherActions = view.findViewById(R.id.layoutOtherActions);
+        btnEditProfile = view.findViewById(R.id.btnEditProfile);
+        btnViewArchive = view.findViewById(R.id.btnViewArchive);
+        btnFollow = view.findViewById(R.id.btnFollow);
+        btnMessage = view.findViewById(R.id.btnMessage);
+        btnCreate = view.findViewById(R.id.btnProfileCreate);
+        btnMenu = view.findViewById(R.id.btnProfileMenu);
+        btnOtherMenu = view.findViewById(R.id.btnOtherMenu);
+        rvCollections = view.findViewById(R.id.rvCollections);
+        rvCollections.setLayoutManager(new LinearLayoutManager(requireContext(), RecyclerView.HORIZONTAL, false));
+        collectionsAdapter = new CollectionsAdapter();
+        rvCollections.setAdapter(collectionsAdapter);
 
-        btnLight.setOnClickListener(v -> {
-            sessionManager.setTheme(AppCompatDelegate.MODE_NIGHT_NO);
-            ThemeHelper.applyTheme(AppCompatDelegate.MODE_NIGHT_NO);
-            Toast.makeText(requireContext(), "Light theme applied", Toast.LENGTH_SHORT).show();
-        });
-
-        btnDark.setOnClickListener(v -> {
-            sessionManager.setTheme(AppCompatDelegate.MODE_NIGHT_YES);
-            ThemeHelper.applyTheme(AppCompatDelegate.MODE_NIGHT_YES);
-            Toast.makeText(requireContext(), "Dark theme applied", Toast.LENGTH_SHORT).show();
-        });
-
-        btnEditPreferences.setOnClickListener(v -> {
-            if (email == null) {
-                Toast.makeText(requireContext(), "Your session has expired. Please log in again.", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            Intent intent = new Intent(requireContext(), ProfileSetupActivity.class);
-            intent.putExtra(ProfileSetupActivity.EXTRA_EMAIL, email);
-            intent.putExtra(ProfileSetupActivity.EXTRA_EDIT_MODE, true);
-            startActivity(intent);
-        });
-
-        btnLogout.setOnClickListener(v -> {
-            if (getActivity() instanceof HomeActivity) {
-                ((HomeActivity) getActivity()).onLoggedOut();
-            }
-        });
-
+        setupTabs(view);
+        wireActions();
+        swipeProfile.setOnRefreshListener(this::reloadFromServer);
+        loadFromCacheThenRefresh();
         return view;
     }
 
-    private void renderProfile() {
-        if (email == null || getContext() == null) return;
-        DatabaseHelper.UserProfile profile = dbHelper.getProfile(email);
-        if (profile == null) return;
-
-        tvUsername.setText(profile.username == null ? "Student" : profile.username);
-        tvRealName.setText(profile.realName == null || profile.realName.isEmpty() ? "" : profile.realName);
-        tvEmail.setText(email);
-        tvCampus.setText(profile.campusLocation == null ? "" : profile.campusLocation);
-        tvPreferences.setText(profile.preferences == null ? "" : profile.preferences.replace(",", " · "));
-        tvBio.setText(profile.bio == null || profile.bio.isEmpty()
-                ? "Add a short bio to introduce yourself to campus."
-                : profile.bio);
-        avatarData = profile.profilePicture == null ? "" : profile.profilePicture;
-        displayAvatar(avatarData);
+    private void setupTabs(View root) {
+        TabLayout tabs = root.findViewById(R.id.profileTabs);
+        profilePager = root.findViewById(R.id.profilePager);
+        String username = getEffectiveUsername();
+        boolean isMe = targetUsername == null || targetUsername.isEmpty();
+        profilePager.setAdapter(new ProfileTabsPagerAdapter(requireActivity(), username, isMe));
+        new TabLayoutMediator(tabs, profilePager, (tab, position) -> {
+            tab.setText(null);
+            int iconRes;
+            if (position == 0) iconRes = R.drawable.ic_tab_listings;
+            else if (position == 1) iconRes = R.drawable.ic_heart_filled;
+            else if (position == 2) iconRes = R.drawable.ic_check;
+            else iconRes = R.drawable.ic_message;
+            tab.setIcon(iconRes);
+        }).attach();
     }
 
-    private void displayAvatar(String value) {
-        if (ivAvatar == null || value == null || value.isEmpty()) return;
-        try {
-            if (value.startsWith("data:image/")) {
-                String encoded = value.substring(value.indexOf(',') + 1);
-                byte[] bytes = Base64.decode(encoded, Base64.DEFAULT);
-                ivAvatar.setImageBitmap(BitmapFactory.decodeByteArray(bytes, 0, bytes.length));
-            } else {
-                ivAvatar.setImageURI(Uri.parse(value));
-            }
-        } catch (Exception exception) {
-            ivAvatar.setImageDrawable(null);
-        }
+    private void wireActions() {
+        ivAvatar.setOnClickListener(v -> {
+            if (profile != null && profile.isMe) avatarPickerLauncher.launch("image/*");
+        });
+        btnCreate.setOnClickListener(v -> startActivity(new Intent(requireContext(), CreateListingActivity.class)));
+        btnMenu.setOnClickListener(v -> showOwnMenu());
+        btnOtherMenu.setOnClickListener(v -> showOtherMenu());
+        btnEditProfile.setOnClickListener(v -> showEditDialog());
+        btnViewArchive.setOnClickListener(v -> openArchiveTab());
+        btnFollow.setOnClickListener(v -> toggleFollow());
+        btnMessage.setOnClickListener(v -> showMessageDialog());
+        tvCountFollowers.setOnClickListener(v -> openFollowSheet("followers"));
+        tvCountFollowing.setOnClickListener(v -> openFollowSheet("following"));
+        tvLink.setOnClickListener(v -> {
+            String link = tvLink.getText() == null ? "" : tvLink.getText().toString();
+            if (!link.startsWith("http")) return;
+            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(link)));
+        });
     }
 
-    private void showEditProfileDialog() {
-        if (email == null) {
-            Toast.makeText(requireContext(), "Your session has expired. Please log in again.", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        DatabaseHelper.UserProfile profile = dbHelper.getProfile(email);
-        if (profile == null) return;
+    private void openArchiveTab() {
+        if (profile == null || !profile.isMe) return;
+        if (profilePager != null) profilePager.setCurrentItem(2, true);
+    }
 
-        View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_profile_edit, null);
-        EditText username = dialogView.findViewById(R.id.etProfileUsername);
-        EditText realName = dialogView.findViewById(R.id.etProfileRealName);
-        Spinner campus = dialogView.findViewById(R.id.spProfileCampus);
-        EditText bio = dialogView.findViewById(R.id.etProfileBio);
-        username.setText(profile.username);
-        realName.setText(profile.realName);
-        bio.setText(profile.bio);
-        String[] campuses = getResources().getStringArray(R.array.campus_locations);
-        for (int i = 0; i < campuses.length; i++) {
-            if (campuses[i].equals(profile.campusLocation)) campus.setSelection(i);
-        }
+    private void showOwnMenu() {
+        String[] options = {getString(R.string.profile_edit), getString(R.string.profile_logout)};
+        new AlertDialog.Builder(requireContext())
+                .setItems(options, (dialog, which) -> {
+                    if (which == 0) showEditDialog();
+                    else if (getActivity() instanceof HomeActivity) {
+                        ((HomeActivity) getActivity()).onLoggedOut();
+                    }
+                }).show();
+    }
 
+    private void showOtherMenu() {
+        String[] options = {getString(R.string.profile_report)};
+        new AlertDialog.Builder(requireContext())
+                .setItems(options, (dialog, which) ->
+                        Toast.makeText(requireContext(), R.string.profile_report_ack, Toast.LENGTH_SHORT).show())
+                .show();
+    }
+
+    private void showMessageDialog() {
+        if (profile == null || TextUtils.isEmpty(profile.username)) return;
+        EditText input = new EditText(requireContext());
+        input.setHint(R.string.listing_message_prompt);
+        input.setMinLines(2);
         AlertDialog dialog = new AlertDialog.Builder(requireContext())
-                .setTitle("Edit profile")
-                .setView(dialogView)
-                .setNegativeButton("Cancel", null)
-                .setPositiveButton("Save", null)
+                .setTitle(R.string.profile_message)
+                .setView(input)
+                .setNegativeButton(R.string.listing_action_cancel, null)
+                .setPositiveButton(R.string.action_send, null)
                 .create();
-        dialog.setOnShowListener(ignored -> dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(button -> {
-            String nextUsername = username.getText().toString().trim();
-            String nextRealName = realName.getText().toString().trim();
-            String nextBio = bio.getText().toString().trim();
-            if (nextUsername.length() < 3) {
-                username.setError("Use at least 3 characters.");
+        dialog.setOnShowListener(ignored -> dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+            String body = input.getText() == null ? "" : input.getText().toString().trim();
+            if (body.isEmpty() || body.length() > 2000) {
+                input.setError(getString(R.string.messages_body_too_long));
                 return;
             }
-            saveProfile(nextUsername, nextRealName, campus.getSelectedItem().toString(), nextBio, dialog);
+            CcwApiClient.sendMessageToUsername(profile.username, body, sessionManager.getAuthToken(),
+                    new CcwApiClient.Callback<JSONObject>() {
+                        @Override
+                        public void onSuccess(JSONObject result) {
+                            dialog.dismiss();
+                            Toast.makeText(requireContext(), R.string.listing_message_sent, Toast.LENGTH_SHORT).show();
+                        }
+
+                        @Override
+                        public void onError(String message) {
+                            Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show();
+                        }
+                    });
         }));
         dialog.show();
     }
 
-    private void saveProfile(String username, String realName, String campus, String bio, AlertDialog dialog) {
-        AuthApiClient.updateProfile(username, realName, campus, bio, avatarData,
-                sessionManager.getAuthToken(), new AuthApiClient.Callback() {
+    private void toggleFollow() {
+        if (profile == null || profile.isMe || profile.username == null || profile.username.isEmpty()) return;
+        btnFollow.setEnabled(false);
+        CcwApiClient.Callback<FollowResult> callback = new CcwApiClient.Callback<FollowResult>() {
             @Override
-            public void onSuccess(AuthApiClient.AuthResult result) {
-                dbHelper.cacheRemoteUser(result.email, result.username, result.campus,
-                        result.realName, result.bio, result.avatar);
-                avatarData = result.avatar == null ? "" : result.avatar;
+            public void onSuccess(FollowResult result) {
+                btnFollow.setEnabled(true);
+                profile.isFollowing = result.following;
+                profile.followersCount = result.followers;
                 renderProfile();
-                dialog.dismiss();
-                Toast.makeText(requireContext(), "Profile updated.", Toast.LENGTH_SHORT).show();
             }
 
             @Override
             public void onError(String message) {
-                Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show();
+                btnFollow.setEnabled(true);
+                Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show();
+            }
+        };
+        if (profile.isFollowing) {
+            CcwApiClient.unfollow(profile.username, sessionManager.getAuthToken(), callback);
+        } else {
+            CcwApiClient.follow(profile.username, sessionManager.getAuthToken(), callback);
+        }
+    }
+
+    private void openFollowSheet(String mode) {
+        if (profile == null || profile.username == null || profile.username.isEmpty()) return;
+        FollowListBottomSheet sheet = FollowListBottomSheet.newInstance(profile.username, mode);
+        sheet.setFollowListListener(this);
+        sheet.show(getChildFragmentManager(), "follow-list-" + mode);
+    }
+
+    private void showEditDialog() {
+        if (profile == null || !profile.isMe) return;
+        View view = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_profile_edit, null);
+        EditText etUsername = view.findViewById(R.id.etProfileUsername);
+        EditText etRealName = view.findViewById(R.id.etProfileRealName);
+        android.widget.Spinner spCampus = view.findViewById(R.id.spProfileCampus);
+        EditText etBio = view.findViewById(R.id.etProfileBio);
+        etUsername.setText(profile.username);
+        etRealName.setText(profile.displayName);
+        etBio.setText(profile.bio);
+        setSpinnerSelection(spCampus, profile.campus);
+
+        AlertDialog dialog = new AlertDialog.Builder(requireContext())
+                .setTitle(R.string.profile_edit)
+                .setView(view)
+                .setNegativeButton(R.string.listing_action_cancel, null)
+                .setPositiveButton(R.string.btn_save_changes, null)
+                .create();
+        dialog.setOnShowListener(ignored -> dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+            String nextUsername = textOf(etUsername);
+            String nextName = textOf(etRealName);
+            String nextBio = textOf(etBio);
+            String nextCampus = String.valueOf(spCampus.getSelectedItem());
+            if (nextUsername.length() < 3) {
+                etUsername.setError(getString(R.string.profile_username_invalid));
+                return;
+            }
+            CcwApiClient.updateProfile(nextName, nextUsername, nextBio, profile.link, nextCampus,
+                    sessionManager.getAuthToken(), new CcwApiClient.Callback<Profile>() {
+                        @Override
+                        public void onSuccess(Profile result) {
+                            sessionManager.setLoggedInUsername(result.username);
+                            profile = result;
+                            renderProfile();
+                            dialog.dismiss();
+                        }
+
+                        @Override
+                        public void onError(String message) {
+                            Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show();
+                        }
+                    });
+        }));
+        dialog.show();
+    }
+
+    private void setSpinnerSelection(android.widget.Spinner spinner, String value) {
+        if (value == null) return;
+        for (int i = 0; i < spinner.getCount(); i++) {
+            if (value.equalsIgnoreCase(String.valueOf(spinner.getItemAtPosition(i)))) {
+                spinner.setSelection(i);
+                return;
+            }
+        }
+    }
+
+    private void uploadAvatar(Uri uri) {
+        CcwHttp.runAsync(() -> {
+            try {
+                byte[] bytes = ImageUtils.readAndCompress(requireContext(), uri, 512, 86);
+                CcwApiClient.uploadAvatar(bytes, sessionManager.getAuthToken(), percent -> {}, new CcwApiClient.Callback<String>() {
+                    @Override
+                    public void onSuccess(String result) {
+                        reloadFromServer();
+                    }
+
+                    @Override
+                    public void onError(String message) {
+                        if (!isAdded()) return;
+                        Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show();
+                    }
+                });
+            } catch (Exception exception) {
+                if (!isAdded()) return;
+                Toast.makeText(requireContext(), R.string.listing_image_read_error, Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    private void updateAvatar(Uri uri) {
+    private void loadFromCacheThenRefresh() {
+        String username = getEffectiveUsername();
+        if (username != null && !username.isEmpty()) {
+            JSONObject cached = cacheDb.getProfile(username);
+            if (cached != null) {
+                profile = Profile.fromJson(cached);
+                renderProfile();
+            }
+        }
+        reloadFromServer();
+        loadCollections();
+    }
+
+    private void reloadFromServer() {
+        String username = getEffectiveUsername();
+        if (username == null || username.isEmpty()) {
+            swipeProfile.setRefreshing(false);
+            return;
+        }
+        CcwApiClient.getProfile(username, sessionManager.getAuthToken(), new CcwApiClient.Callback<Profile>() {
+            @Override
+            public void onSuccess(Profile result) {
+                if (!isAdded()) return;
+                swipeProfile.setRefreshing(false);
+                profile = result;
+                renderProfile();
+                cacheProfile(result);
+            }
+
+            @Override
+            public void onError(String message) {
+                if (!isAdded()) return;
+                swipeProfile.setRefreshing(false);
+                Toast.makeText(requireContext(),
+                        message == null || message.isEmpty() ? getString(R.string.generic_offline_message) : message,
+                        Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void cacheProfile(Profile profile) {
         try {
-            Bitmap bitmap = readScaledBitmap(uri);
-            if (bitmap == null) throw new IllegalArgumentException("Unsupported image.");
-            String nextAvatar = bitmapToDataUrl(bitmap);
-            DatabaseHelper.UserProfile profile = dbHelper.getProfile(email);
-            if (profile == null) return;
-            AuthApiClient.updateProfile(profile.username, profile.realName, profile.campusLocation,
-                    profile.bio, nextAvatar, sessionManager.getAuthToken(), new AuthApiClient.Callback() {
+            JSONObject json = new JSONObject();
+            json.put("username", profile.username);
+            json.put("display_name", profile.displayName);
+            json.put("real_name", profile.realName);
+            json.put("bio", profile.bio);
+            json.put("link", profile.link);
+            json.put("campus", profile.campus);
+            json.put("avatar_url", profile.avatarUrl);
+            json.put("created_at", profile.createdAt);
+            JSONObject counts = new JSONObject();
+            counts.put("listings", profile.listingsCount);
+            counts.put("followers", profile.followersCount);
+            counts.put("following", profile.followingCount);
+            json.put("counts", counts);
+            JSONObject rating = new JSONObject();
+            rating.put("count", profile.ratingCount);
+            rating.put("average", profile.ratingAverage);
+            json.put("rating", rating);
+            if (profile.noteBody != null && !profile.noteBody.isEmpty()) {
+                JSONObject note = new JSONObject();
+                note.put("body", profile.noteBody);
+                note.put("expires_at", profile.noteExpiresAt);
+                json.put("note", note);
+            }
+            json.put("is_me", profile.isMe);
+            json.put("is_following", profile.isFollowing);
+            cacheDb.putProfile(profile.username, json);
+        } catch (Exception ignored) {
+        }
+    }
+
+    private void loadCollections() {
+        CcwApiClient.listCollections(sessionManager.getAuthToken(), new CcwApiClient.Callback<List<Collection>>() {
+            @Override
+            public void onSuccess(List<Collection> result) {
+                collections.clear();
+                if (result != null) collections.addAll(result);
+                collectionsAdapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onError(String message) {
+                // keep any cached list from prior load
+            }
+        });
+    }
+
+    private void renderProfile() {
+        if (profile == null || !isAdded()) return;
+        tvTopUsername.setText("@" + profile.username);
+        tvCountListings.setText(String.valueOf(profile.listingsCount));
+        tvCountFollowers.setText(String.valueOf(profile.followersCount));
+        tvCountFollowing.setText(String.valueOf(profile.followingCount));
+        String display = profile.displayName == null || profile.displayName.isEmpty()
+                ? "@" + profile.username : profile.displayName;
+        tvDisplayName.setText(display);
+        tvBio.setText(profile.bio == null || profile.bio.isEmpty() ? getString(R.string.profile_bio_empty) : profile.bio);
+        tvLink.setText(profile.link == null ? "" : profile.link);
+        tvLink.setVisibility(profile.link == null || profile.link.isEmpty() ? View.GONE : View.VISIBLE);
+        tvCampus.setText(profile.campus == null ? "" : profile.campus);
+        tvCampus.setVisibility(profile.campus == null || profile.campus.isEmpty() ? View.GONE : View.VISIBLE);
+        boolean hasNote = profile.hasActiveNote();
+        tvNote.setVisibility(hasNote ? View.VISIBLE : View.GONE);
+        if (hasNote) tvNote.setText(profile.noteBody);
+        Glide.with(ivAvatar)
+                .load(CcwHttp.resolveUrl(profile.avatarUrl))
+                .placeholder(R.drawable.bg_avatar_circle)
+                .error(R.drawable.bg_avatar_circle)
+                .circleCrop()
+                .into(ivAvatar);
+
+        layoutOwnActions.setVisibility(profile.isMe ? View.VISIBLE : View.GONE);
+        layoutOtherActions.setVisibility(profile.isMe ? View.GONE : View.VISIBLE);
+        btnFollow.setText(profile.isFollowing ? R.string.profile_unfollow : R.string.profile_follow);
+    }
+
+    private String getEffectiveUsername() {
+        if (targetUsername != null && !targetUsername.isEmpty()) return targetUsername;
+        String fromSession = sessionManager.getLoggedInUsername();
+        return fromSession == null ? "" : fromSession;
+    }
+
+    private static String textOf(TextView view) {
+        return view.getText() == null ? "" : view.getText().toString().trim();
+    }
+
+    @Override
+    public void onFollowCountChanged(int followers, boolean nowFollowing) {
+        if (profile == null) return;
+        profile.followersCount = followers;
+        profile.isFollowing = nowFollowing;
+        renderProfile();
+    }
+
+    @Override
+    public void onOpenProfile(String username) {
+        if (getActivity() instanceof HomeActivity) {
+            ((HomeActivity) getActivity()).openProfile(username);
+        }
+    }
+
+    private final class CollectionsAdapter extends RecyclerView.Adapter<CollectionsAdapter.CollectionHolder> {
+
+        @NonNull
+        @Override
+        public CollectionHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            View view = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.item_profile_collection, parent, false);
+            return new CollectionHolder(view);
+        }
+
+        @Override
+        public void onBindViewHolder(@NonNull CollectionHolder holder, int position) {
+            if (position == 0) {
+                holder.name.setText(getString(R.string.profile_collection_new));
+                holder.icon.setImageResource(R.drawable.ic_plus);
+                holder.itemView.setOnClickListener(v -> showCreateCollectionDialog());
+                return;
+            }
+            Collection collection = collections.get(position - 1);
+            holder.icon.setImageResource(R.drawable.ic_archive);
+            holder.name.setText(collection.name == null || collection.name.isEmpty()
+                    ? getString(R.string.profile_collection_default_name, collection.id)
+                    : collection.name);
+            holder.itemView.setOnClickListener(v ->
+                    Toast.makeText(requireContext(),
+                            getString(R.string.profile_collection_items_count, collection.itemCount),
+                            Toast.LENGTH_SHORT).show());
+        }
+
+        @Override
+        public int getItemCount() {
+            return collections.size() + 1;
+        }
+
+        final class CollectionHolder extends RecyclerView.ViewHolder {
+            final ImageView icon;
+            final TextView name;
+
+            CollectionHolder(@NonNull View itemView) {
+                super(itemView);
+                icon = itemView.findViewById(R.id.ivCollectionIcon);
+                name = itemView.findViewById(R.id.tvCollectionName);
+            }
+        }
+    }
+
+    private void showCreateCollectionDialog() {
+        EditText input = new EditText(requireContext());
+        input.setHint(R.string.profile_collection_name_hint);
+        AlertDialog dialog = new AlertDialog.Builder(requireContext())
+                .setTitle(R.string.profile_collection_new)
+                .setView(input)
+                .setNegativeButton(R.string.listing_action_cancel, null)
+                .setPositiveButton(R.string.listing_action_confirm, null)
+                .create();
+        dialog.setOnShowListener(ignored -> dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+            String name = input.getText() == null ? "" : input.getText().toString().trim();
+            if (name.isEmpty()) {
+                input.setError(getString(R.string.profile_collection_name_hint));
+                return;
+            }
+            CcwApiClient.createCollection(name, sessionManager.getAuthToken(), new CcwApiClient.Callback<Collection>() {
                 @Override
-                public void onSuccess(AuthApiClient.AuthResult result) {
-                    dbHelper.cacheRemoteUser(result.email, result.username, result.campus,
-                            result.realName, result.bio, result.avatar);
-                    avatarData = result.avatar;
-                    renderProfile();
+                public void onSuccess(Collection result) {
+                    collections.add(0, result);
+                    collectionsAdapter.notifyDataSetChanged();
+                    dialog.dismiss();
                 }
 
                 @Override
                 public void onError(String message) {
-                    Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show();
+                    Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show();
                 }
             });
-        } catch (Exception exception) {
-            Toast.makeText(requireContext(), "Could not read that image. Choose another.", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    private Bitmap readScaledBitmap(Uri uri) throws Exception {
-        BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inJustDecodeBounds = true;
-        try (InputStream stream = requireContext().getContentResolver().openInputStream(uri)) {
-            BitmapFactory.decodeStream(stream, null, options);
-        }
-        int sample = 1;
-        while (options.outWidth / sample > 512 || options.outHeight / sample > 512) sample *= 2;
-        options.inJustDecodeBounds = false;
-        options.inSampleSize = sample;
-        try (InputStream stream = requireContext().getContentResolver().openInputStream(uri)) {
-            return BitmapFactory.decodeStream(stream, null, options);
-        }
-    }
-
-    private String bitmapToDataUrl(Bitmap bitmap) {
-        ByteArrayOutputStream output = new ByteArrayOutputStream();
-        int quality = 82;
-        do {
-            output.reset();
-            bitmap.compress(Bitmap.CompressFormat.JPEG, quality, output);
-            quality -= 8;
-        } while (output.size() > 300000 && quality > 34);
-        if (output.size() > 300000) throw new IllegalArgumentException("Image is too large.");
-        return "data:image/jpeg;base64," + Base64.encodeToString(output.toByteArray(), Base64.NO_WRAP);
+        }));
+        dialog.show();
     }
 }

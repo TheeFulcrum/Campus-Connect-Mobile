@@ -82,7 +82,9 @@ public class MainActivity extends AppCompatActivity {
                 if (continueToPreferences) {
                     intent.putExtra(ProfileSetupActivity.EXTRA_AUTH_TOKEN, result.token);
                 } else {
-                    new SessionManager(MainActivity.this).createSession(result.email, result.token);
+                    SessionManager session = new SessionManager(MainActivity.this);
+                    session.createSession(result.email, result.token);
+                    session.setLoggedInUsername(result.username);
                 }
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                 startActivity(intent);

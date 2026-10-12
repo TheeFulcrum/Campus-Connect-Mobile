@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Shared sizing tokens reused across the Profile/Listings feature set. -->
+    <dimen name="grid_gap">2dp</dimen>
+    <dimen name="grid_span_count">3</dimen>
+    <dimen name="avatar_size_large">86dp</dimen>
+    <dimen name="avatar_size_medium">56dp</dimen>
+    <dimen name="avatar_size_small">40dp</dimen>
+    <dimen name="collection_item_size">64dp</dimen>
+    <dimen name="touch_target_min">48dp</dimen>
+    <dimen name="spacing_xs">4dp</dimen>
+    <dimen name="spacing_s">8dp</dimen>
+    <dimen name="spacing_m">16dp</dimen>
+    <dimen name="spacing_l">24dp</dimen>
+</resources>

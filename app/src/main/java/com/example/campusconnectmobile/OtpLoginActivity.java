@@ -109,7 +109,9 @@ public class OtpLoginActivity extends AppCompatActivity {
                     return;
                 }
 
-                new SessionManager(OtpLoginActivity.this).createSession(result.email, result.token);
+                SessionManager session = new SessionManager(OtpLoginActivity.this);
+                session.createSession(result.email, result.token);
+                session.setLoggedInUsername(result.username);
                 Intent intent = new Intent(OtpLoginActivity.this, HomeActivity.class);
                 intent.putExtra(HomeActivity.EXTRA_EMAIL, result.email);
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);

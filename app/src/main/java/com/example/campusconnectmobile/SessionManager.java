@@ -8,6 +8,7 @@ public class SessionManager {
     private static final String PREF_NAME = "campus_connect_session";
     private static final String KEY_EMAIL = "logged_in_email";
     private static final String KEY_AUTH_TOKEN = "auth_token";
+    private static final String KEY_USERNAME = "logged_in_username";
 
     private static final String KEY_THEME = "app_theme";
 
@@ -49,7 +50,15 @@ public class SessionManager {
         return prefs.getString(KEY_AUTH_TOKEN, null);
     }
 
+    public void setLoggedInUsername(String username) {
+        prefs.edit().putString(KEY_USERNAME, username).apply();
+    }
+
+    public String getLoggedInUsername() {
+        return prefs.getString(KEY_USERNAME, null);
+    }
+
     public void clearSession() {
-        prefs.edit().remove(KEY_EMAIL).remove(KEY_AUTH_TOKEN).apply();
+        prefs.edit().remove(KEY_EMAIL).remove(KEY_AUTH_TOKEN).remove(KEY_USERNAME).apply();
     }
 }

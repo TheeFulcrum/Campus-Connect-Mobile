@@ -7,6 +7,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
@@ -14,21 +15,29 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     private static final int VIEW_TYPE_MINE = 1;
     private static final int VIEW_TYPE_THEIRS = 2;
 
-    private final List<ChatMessage> messages;
-    private final String currentUserId;
+    private final List<ServerMessage> messages = new ArrayList<>();
 
-    public MessageAdapter(List<ChatMessage> messages, String currentUserId) {
-        this.messages = messages;
-        this.currentUserId = currentUserId;
+    public void submitMessages(List<ServerMessage> latest) {
+        messages.clear();
+        if (latest != null) messages.addAll(latest);
+        notifyDataSetChanged();
+    }
+
+    public void appendMessages(List<ServerMessage> more) {
+        if (more == null || more.isEmpty()) return;
+        int start = messages.size();
+        messages.addAll(more);
+        notifyItemRangeInserted(start, more.size());
+    }
+
+    public int getLastMessageId() {
+        if (messages.isEmpty()) return 0;
+        return messages.get(messages.size() - 1).id;
     }
 
     @Override
     public int getItemViewType(int position) {
-        if (messages.get(position).senderEmail.equals(currentUserId)) {
-            return VIEW_TYPE_MINE;
-        } else {
-            return VIEW_TYPE_THEIRS;
-        }
+        return messages.get(position).isMine ? VIEW_TYPE_MINE : VIEW_TYPE_THEIRS;
     }
 
     @NonNull
@@ -45,11 +54,11 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
-        ChatMessage message = messages.get(position);
+        ServerMessage message = messages.get(position);
         if (holder instanceof MineViewHolder) {
-            ((MineViewHolder) holder).tvText.setText(message.messageText);
+            ((MineViewHolder) holder).tvText.setText(message.body);
         } else if (holder instanceof TheirsViewHolder) {
-            ((TheirsViewHolder) holder).tvText.setText(message.messageText);
+            ((TheirsViewHolder) holder).tvText.setText(message.body);
         }
     }
 

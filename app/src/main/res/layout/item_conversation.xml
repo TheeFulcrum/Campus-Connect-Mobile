@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
@@ -9,10 +10,12 @@
     android:clickable="true"
     android:focusable="true">
 
-    <View
-        android:id="@+id/viewAvatar"
+    <ImageView
+        android:id="@+id/ivConversationAvatar"
         android:layout_width="56dp"
         android:layout_height="56dp"
+        android:contentDescription="@string/cd_user_avatar"
+        android:scaleType="centerCrop"
         android:background="@drawable/bg_avatar_circle" />
 
     <LinearLayout
@@ -41,15 +44,47 @@
             android:maxLines="1"
             android:ellipsize="end" />
 
+        <TextView
+            android:id="@+id/tvConvListingContext"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/colorTextMuted"
+            android:textSize="12sp"
+            android:maxLines="1"
+            android:ellipsize="end" />
+
     </LinearLayout>
 
-    <TextView
-        android:id="@+id/tvConvTime"
+    <LinearLayout
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="2h"
-        android:textColor="@color/colorTextMuted"
-        android:textSize="12sp"
-        android:layout_marginStart="8dp" />
+        android:layout_height="match_parent"
+        android:gravity="end|center_vertical"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tvConvTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="2h"
+            android:textColor="@color/colorTextMuted"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/tvConvUnread"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:background="@drawable/bg_unread_badge"
+            android:gravity="center"
+            android:minWidth="16dp"
+            android:minHeight="16dp"
+            android:paddingStart="3dp"
+            android:paddingEnd="3dp"
+            android:textColor="@color/white"
+            android:textSize="10sp"
+            android:textStyle="bold"
+            android:visibility="gone"
+            tools:text="3" />
+    </LinearLayout>
 
 </LinearLayout>

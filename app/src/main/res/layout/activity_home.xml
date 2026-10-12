@@ -5,10 +5,111 @@
     android:layout_height="match_parent"
     android:background="@color/colorBackground">
 
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/homeToolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:layout_alignParentTop="true"
+        android:background="@color/colorSurface"
+        android:elevation="4dp"
+        app:contentInsetStart="16dp">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:text="@string/app_name"
+                android:textColor="@color/colorTextPrimary"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:orientation="horizontal">
+
+                <FrameLayout
+                    android:id="@+id/btnNotificationsTopBar"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/cd_notifications">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_tab_notifications"
+                        app:tint="@color/colorTextPrimary" />
+
+                    <TextView
+                        android:id="@+id/tvNotificationsUnreadBadge"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="top|end"
+                        android:layout_marginTop="2dp"
+                        android:layout_marginEnd="2dp"
+                        android:background="@drawable/bg_unread_badge"
+                        android:gravity="center"
+                        android:minWidth="16dp"
+                        android:minHeight="16dp"
+                        android:paddingStart="3dp"
+                        android:paddingEnd="3dp"
+                        android:text="1"
+                        android:textColor="@color/white"
+                        android:textSize="10sp"
+                        android:textStyle="bold"
+                        android:visibility="gone" />
+                </FrameLayout>
+
+                <FrameLayout
+                    android:id="@+id/btnMessagesTopBar"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/cd_messages">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_tab_messages"
+                        app:tint="@color/colorTextPrimary" />
+
+                    <TextView
+                        android:id="@+id/tvMessagesUnreadBadge"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="top|end"
+                        android:layout_marginTop="2dp"
+                        android:layout_marginEnd="2dp"
+                        android:background="@drawable/bg_unread_badge"
+                        android:gravity="center"
+                        android:minWidth="16dp"
+                        android:minHeight="16dp"
+                        android:paddingStart="3dp"
+                        android:paddingEnd="3dp"
+                        android:text="1"
+                        android:textColor="@color/white"
+                        android:textSize="10sp"
+                        android:textStyle="bold"
+                        android:visibility="gone" />
+                </FrameLayout>
+            </LinearLayout>
+        </RelativeLayout>
+    </androidx.appcompat.widget.Toolbar>
+
     <FrameLayout
         android:id="@+id/fragmentContainer"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_below="@id/homeToolbar"
         android:layout_above="@+id/bottomNav" />
 
     <LinearLayout
@@ -34,14 +135,6 @@
         </LinearLayout>
 
         <LinearLayout
-            android:id="@+id/nav_adverts"
-            style="@style/CampusConnectBottomNavItem"
-            android:contentDescription="Adverts">
-            <ImageView android:id="@+id/ivNavAdverts" style="@style/CampusConnectBottomNavIcon" android:src="@drawable/ic_tab_adverts" />
-            <TextView android:id="@+id/tvNavAdverts" style="@style/CampusConnectBottomNavLabel" android:text="Adverts" />
-        </LinearLayout>
-
-        <LinearLayout
             android:id="@+id/nav_search"
             style="@style/CampusConnectBottomNavItem"
             android:contentDescription="Search">
@@ -50,25 +143,25 @@
         </LinearLayout>
 
         <LinearLayout
-            android:id="@+id/nav_camera"
+            android:id="@+id/nav_create"
             style="@style/CampusConnectBottomNavItem"
-            android:contentDescription="Post">
+            android:contentDescription="Create">
             <ImageView
-                android:id="@+id/ivNavCamera"
+                android:id="@+id/ivNavCreate"
                 android:layout_width="32dp"
                 android:layout_height="32dp"
                 android:background="@drawable/bg_nav_post"
                 android:padding="6dp"
                 android:src="@drawable/ic_tab_camera" />
-            <TextView android:id="@+id/tvNavCamera" style="@style/CampusConnectBottomNavLabel" android:text="Post" />
+            <TextView android:id="@+id/tvNavCreate" style="@style/CampusConnectBottomNavLabel" android:text="Create" />
         </LinearLayout>
 
         <LinearLayout
-            android:id="@+id/nav_messages"
+            android:id="@+id/nav_listings"
             style="@style/CampusConnectBottomNavItem"
-            android:contentDescription="Messages">
-            <ImageView android:id="@+id/ivNavMessages" style="@style/CampusConnectBottomNavIcon" android:src="@drawable/ic_tab_messages" />
-            <TextView android:id="@+id/tvNavMessages" style="@style/CampusConnectBottomNavLabel" android:text="Messages" />
+            android:contentDescription="Listings">
+            <ImageView android:id="@+id/ivNavListings" style="@style/CampusConnectBottomNavIcon" android:src="@drawable/ic_tab_listings" />
+            <TextView android:id="@+id/tvNavListings" style="@style/CampusConnectBottomNavLabel" android:text="Listings" />
         </LinearLayout>
 
         <LinearLayout

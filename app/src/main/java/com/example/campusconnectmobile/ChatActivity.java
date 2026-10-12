@@ -1,44 +1,40 @@
 package com.example.campusconnectmobile;
 
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
+import android.text.TextUtils;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import java.util.ArrayList;
+import org.json.JSONObject;
+
 import java.util.List;
 
 public class ChatActivity extends AppCompatActivity {
 
-    public static final String EXTRA_PARTICIPANT_EMAIL = "participant_email";
-    public static final String EXTRA_PARTICIPANT_NAME = "participant_name";
-    private static final long POLL_INTERVAL_MS = 2500;
+    public static final String EXTRA_CONVERSATION_ID = "conversation_id";
+    public static final String EXTRA_CONVERSATION_TITLE = "conversation_title";
 
-    private String currentUserId;
-    private String participantEmail;
-    private String participantName;
-    
-    private DatabaseHelper dbHelper;
-    private List<ChatMessage> messageList;
+    private static final long POLL_INTERVAL_MS = 3_000L;
+
+    private int conversationId;
+    private String token;
+    private String myUsername;
     private MessageAdapter adapter;
-    
     private RecyclerView rvMessages;
     private EditText etMessage;
     private Button btnSend;
-    private ImageButton btnBack;
-    private TextView tvChatTitle;
-
-    private final Handler pollHandler = new Handler(Looper.getMainLooper());
+    private final android.os.Handler pollHandler = new android.os.Handler(android.os.Looper.getMainLooper());
     private final Runnable pollRunnable = new Runnable() {
         @Override
         public void run() {
-            refreshMessages();
+            pollMessages(adapter.getLastMessageId());
             pollHandler.postDelayed(this, POLL_INTERVAL_MS);
         }
     };
@@ -48,48 +44,40 @@ public class ChatActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
 
-        dbHelper = new DatabaseHelper(this);
-        currentUserId = new SessionManager(this).getLoggedInEmail();
-        participantEmail = getIntent().getStringExtra(EXTRA_PARTICIPANT_EMAIL);
-        participantName = getIntent().getStringExtra(EXTRA_PARTICIPANT_NAME);
+        SessionManager sessionManager = new SessionManager(this);
+        token = sessionManager.getAuthToken();
+        myUsername = sessionManager.getLoggedInUsername();
+        conversationId = getIntent().getIntExtra(EXTRA_CONVERSATION_ID, 0);
+        if (conversationId <= 0 || TextUtils.isEmpty(token)) {
+            finish();
+            return;
+        }
 
         rvMessages = findViewById(R.id.rvMessages);
         etMessage = findViewById(R.id.etChatMessage);
         btnSend = findViewById(R.id.btnSendChat);
-        btnBack = findViewById(R.id.btnBack);
-        tvChatTitle = findViewById(R.id.tvChatTitle);
-
-        tvChatTitle.setText(participantName);
+        ImageButton btnBack = findViewById(R.id.btnBack);
+        TextView tvChatTitle = findViewById(R.id.tvChatTitle);
+        String title = getIntent().getStringExtra(EXTRA_CONVERSATION_TITLE);
+        tvChatTitle.setText(title == null || title.isEmpty()
+                ? getString(R.string.messages_title) : title);
+        btnBack.setContentDescription(getString(R.string.cd_navigate_back));
         btnBack.setOnClickListener(v -> finish());
 
-        messageList = dbHelper.getMessagesBetween(currentUserId, participantEmail);
-        adapter = new MessageAdapter(messageList, currentUserId);
-        
-        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
-        layoutManager.setStackFromEnd(true);
-        rvMessages.setLayoutManager(layoutManager);
+        LinearLayoutManager manager = new LinearLayoutManager(this);
+        manager.setStackFromEnd(true);
+        rvMessages.setLayoutManager(manager);
+        adapter = new MessageAdapter();
         rvMessages.setAdapter(adapter);
 
         btnSend.setOnClickListener(v -> sendMessage());
-    }
-
-    private void refreshMessages() {
-        if (currentUserId == null || participantEmail == null) return;
-        List<ChatMessage> latest = dbHelper.getMessagesBetween(currentUserId, participantEmail);
-        if (latest.size() > messageList.size()) {
-            int previousSize = messageList.size();
-            for (int i = previousSize; i < latest.size(); i++) {
-                messageList.add(latest.get(i));
-            }
-            adapter.notifyItemRangeInserted(previousSize, latest.size() - previousSize);
-            rvMessages.smoothScrollToPosition(messageList.size() - 1);
-        }
+        pollMessages(0);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        pollHandler.post(pollRunnable);
+        pollHandler.postDelayed(pollRunnable, POLL_INTERVAL_MS);
     }
 
     @Override
@@ -98,16 +86,61 @@ public class ChatActivity extends AppCompatActivity {
         pollHandler.removeCallbacks(pollRunnable);
     }
 
-    private void sendMessage() {
-        String text = etMessage.getText().toString().trim();
-        if (text.isEmpty() || currentUserId == null || participantEmail == null) return;
+    private void pollMessages(int afterId) {
+        CcwApiClient.getThread(conversationId, afterId, token, myUsername,
+                new CcwApiClient.Callback<List<ServerMessage>>() {
+                    @Override
+                    public void onSuccess(List<ServerMessage> result) {
+                        if (result == null || result.isEmpty()) return;
+                        boolean firstLoad = afterId == 0 && adapter.getLastMessageId() == 0;
+                        if (firstLoad) {
+                            adapter.submitMessages(result);
+                        } else {
+                            adapter.appendMessages(result);
+                        }
+                        rvMessages.scrollToPosition(Math.max(0, adapter.getItemCount() - 1));
+                        if (afterId == 0) {
+                            CcwApiClient.markConversationRead(conversationId, token,
+                                    new CcwApiClient.Callback<JSONObject>() {
+                                        @Override public void onSuccess(JSONObject result) {}
+                                        @Override public void onError(String message) {}
+                                    });
+                        }
+                    }
 
-        if (dbHelper.insertMessage(currentUserId, participantEmail, text)) {
-            ChatMessage newMessage = new ChatMessage(currentUserId, participantEmail, text, System.currentTimeMillis());
-            messageList.add(newMessage);
-            adapter.notifyItemInserted(messageList.size() - 1);
-            rvMessages.smoothScrollToPosition(messageList.size() - 1);
-            etMessage.setText("");
+                    @Override
+                    public void onError(String message) {
+                        // keep current thread visible when polling fails
+                    }
+                });
+    }
+
+    private void sendMessage() {
+        String body = etMessage.getText() == null ? "" : etMessage.getText().toString().trim();
+        if (body.isEmpty()) return;
+        if (body.length() > 2000) {
+            etMessage.setError(getString(R.string.messages_body_too_long));
+            return;
         }
+        btnSend.setEnabled(false);
+        CcwApiClient.sendMessageToConversation(conversationId, body, token,
+                new CcwApiClient.Callback<JSONObject>() {
+                    @Override
+                    public void onSuccess(JSONObject result) {
+                        etMessage.setText("");
+                        btnSend.setEnabled(true);
+                        pollMessages(adapter.getLastMessageId());
+                    }
+
+                    @Override
+                    public void onError(String message) {
+                        btnSend.setEnabled(true);
+                        Toast.makeText(ChatActivity.this,
+                                message == null || message.isEmpty()
+                                        ? getString(R.string.generic_offline_message)
+                                        : message,
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 }
