@@ -9,9 +9,13 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import android.widget.TextView;
 import android.os.Handler;
 import android.os.Looper;
+
+// ViewBinding import
+import com.example.campusconnectmobile.databinding.FragmentHomeFeedBinding;
 
 import com.facebook.shimmer.ShimmerFrameLayout;
 
@@ -22,6 +26,9 @@ public class HomeFeedFragment extends Fragment {
     private static final String ARG_EMAIL = "arg_email";
     private final Handler feedHandler = new Handler(Looper.getMainLooper());
     private Runnable loadRunnable;
+
+    // ViewBinding
+    private FragmentHomeFeedBinding binding;
 
     public static HomeFeedFragment newInstance(String email) {
         HomeFeedFragment fragment = new HomeFeedFragment();
@@ -35,36 +42,67 @@ public class HomeFeedFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_home_feed, container, false);
+        // Inflate ViewBinding
+        binding = FragmentHomeFeedBinding.inflate(inflater, container, false);
 
-        TextView tvHeader = view.findViewById(R.id.tvFeedHeader);
-        TextView tvEmpty = view.findViewById(R.id.tvEmptyFeed);
-        RecyclerView rvFeed = view.findViewById(R.id.rvFeed);
-        ShimmerFrameLayout shimmerLayout = view.findViewById(R.id.shimmer_view_container);
-        rvFeed.setLayoutManager(new LinearLayoutManager(requireContext()));
+        // Set up swipe to refresh
+        binding.swipeRefresh.setOnRefreshListener(() -> {
+            // Prevent multiple simultaneous refreshes
+            if (!binding.swipeRefresh.isRefreshing()) {
+                binding.swipeRefresh.setRefreshing(true);
+                loadFeedData();
+            }
+        });
 
         // Start shimmer effect
-        shimmerLayout.startShimmer();
+        binding.shimmerViewContainer.startShimmer();
 
         String email = getArguments() != null ? getArguments().getString(ARG_EMAIL) : null;
         DatabaseHelper dbHelper = new DatabaseHelper(requireContext());
 
         DatabaseHelper.UserProfile profile = email == null ? null : dbHelper.getProfile(email);
         if (profile != null && profile.username != null) {
-            tvHeader.setText(profile.campusLocation + " Feed");
+            binding.tvFeedHeader.setText(profile.campusLocation + " Feed");
             loadRunnable = () -> {
                 if (!isAdded() || getView() == null) return;
                 List<DatabaseHelper.Post> posts = dbHelper.getFeedForUser(
                         profile.campusLocation, profile.preferences);
-                finishLoading(shimmerLayout, tvEmpty, rvFeed, posts);
+                finishLoading(binding.shimmerViewContainer, binding.tvEmptyFeed, binding.rvFeed, posts);
+                // Stop refreshing if we were refreshing
+                if (binding.swipeRefresh.isRefreshing()) {
+                    binding.swipeRefresh.setRefreshing(false);
+                }
             };
             feedHandler.postDelayed(loadRunnable, 300);
         } else {
-            finishLoading(shimmerLayout, tvEmpty, rvFeed, java.util.Collections.emptyList());
-            tvEmpty.setText("Complete your profile to see campus listings.");
+            finishLoading(binding.shimmerViewContainer, binding.tvEmptyFeed, binding.rvFeed, java.util.Collections.emptyList());
+            binding.tvEmptyFeed.setText("Complete your profile to see campus listings.");
+            // Stop refreshing if we were refreshing
+            if (binding.swipeRefresh.isRefreshing()) {
+                binding.swipeRefresh.setRefreshing(false);
+            }
         }
 
-        return view;
+        return binding.getRoot();
+    }
+
+    private void loadFeedData() {
+        String email = getArguments() != null ? getArguments().getString(ARG_EMAIL) : null;
+        DatabaseHelper dbHelper = new DatabaseHelper(requireContext());
+
+        DatabaseHelper.UserProfile profile = email == null ? null : dbHelper.getProfile(email);
+        if (profile != null && profile.username != null) {
+            List<DatabaseHelper.Post> posts = dbHelper.getFeedForUser(
+                    profile.campusLocation, profile.preferences);
+            finishLoading(binding.shimmerViewContainer, binding.tvEmptyFeed, binding.rvFeed, posts);
+        } else {
+            finishLoading(binding.shimmerViewContainer, binding.tvEmptyFeed, binding.rvFeed, java.util.Collections.emptyList());
+            binding.tvEmptyFeed.setText("Complete your profile to see campus listings.");
+        }
+        // Stop refreshing
+        if (binding.swipeRefresh.isRefreshing()) {
+            binding.swipeRefresh.setRefreshing(false);
+        }
     }
 
     private void finishLoading(ShimmerFrameLayout shimmerLayout, TextView tvEmpty,
@@ -87,5 +125,7 @@ public class HomeFeedFragment extends Fragment {
             feedHandler.removeCallbacks(loadRunnable);
         }
         super.onDestroyView();
+        // Clean up binding reference to prevent memory leaks
+        binding = null;
     }
 }

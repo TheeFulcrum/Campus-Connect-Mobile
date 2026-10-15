@@ -15,7 +15,7 @@ viewpager2 = "1.1.0"
 recyclerview = "1.4.0"
 glide = "4.16.0"
 lifecycleViewmodel = "2.9.2"
-zxing = "3.5.2"
+zxing = "3.6.0"
 
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }

@@ -124,10 +124,7 @@
     <string name="qr_code_scanner_download_prompt">Please install a QR code scanner app to use this feature.</string>
     <string name="action_download">Download</string>
     <string name="action_cancel">Cancel</string>
+    <string name="action_close">Close</string>
     <string name="qr_code_scan_cancelled">QR code scan cancelled</string>
     <string name="profile_found_opening">Opening profile for @%1$s</string>
-</resources>
-</resources>
-</resources>
-</resources>
 </resources>

@@ -189,5 +189,4 @@
             <TextView android:id="@+id/tvNavProfile" style="@style/CampusConnectBottomNavLabel" android:text="Profile" />
         </LinearLayout>
     </LinearLayout>
-
 </RelativeLayout>

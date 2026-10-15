@@ -1,59 +1,65 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.swiperefreshlayout.widget.SwipeRefreshLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/swipeRefresh"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@color/colorBackground"
-    android:orientation="vertical">
+    android:layout_height="match_parent">
 
-    <TextView
-        android:id="@+id/tvFeedHeader"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="16dp"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:textColor="@color/colorPrimary"
-        android:background="@color/colorSurface"
-        android:elevation="2dp" />
+        android:layout_height="match_parent"
+        android:background="@color/colorBackground"
+        android:orientation="vertical">
 
-    <com.facebook.shimmer.ShimmerFrameLayout
-        android:id="@+id/shimmer_view_container"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:visibility="visible">
-
-        <LinearLayout
+        <TextView
+            android:id="@+id/tvFeedHeader"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:padding="16dp"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@color/colorPrimary"
+            android:background="@color/colorSurface"
+            android:elevation="2dp" />
 
-            <include layout="@layout/item_post_skeleton" />
-            <include layout="@layout/item_post_skeleton" />
-            <include layout="@layout/item_post_skeleton" />
-            <include layout="@layout/item_post_skeleton" />
+        <com.facebook.shimmer.ShimmerFrameLayout
+            android:id="@+id/shimmer_view_container"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:visibility="visible">
 
-        </LinearLayout>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
 
-    </com.facebook.shimmer.ShimmerFrameLayout>
+                <include layout="@layout/item_post_skeleton" />
+                <include layout="@layout/item_post_skeleton" />
+                <include layout="@layout/item_post_skeleton" />
+                <include layout="@layout/item_post_skeleton" />
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvFeed"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:paddingTop="8dp"
-        android:clipToPadding="false"
-        android:visibility="gone" />
+            </LinearLayout>
 
-    <TextView
-        android:id="@+id/tvEmptyFeed"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:padding="40dp"
-        android:text="No posts yet for your campus and interests. Tap the Post tab to share something!"
-        android:textColor="@color/colorTextMuted"
-        android:visibility="gone" />
+        </com.facebook.shimmer.ShimmerFrameLayout>
 
-</LinearLayout>
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvFeed"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:paddingTop="8dp"
+            android:clipToPadding="false"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/tvEmptyFeed"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:padding="40dp"
+            android:text="No posts yet for your campus and interests. Tap the Post tab to share something!"
+            android:textColor="@color/colorTextMuted"
+            android:visibility="gone" />
+
+    </LinearLayout>
+</androidx.swiperefreshlayout.widget.SwipeRefreshLayout>

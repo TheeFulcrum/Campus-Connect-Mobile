@@ -9,14 +9,23 @@ import android.os.Handler;
 import android.os.Looper;
 import android.view.View;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
+// ViewBinding import
+import com.example.campusconnectmobile.databinding.ActivityHomeBinding;
+
+import java.util.List;
+
 public class HomeActivity extends AppCompatActivity {
+
+    // ViewBinding
+    private ActivityHomeBinding binding;
 
     public static final String EXTRA_EMAIL = "extra_email";
 
@@ -26,9 +35,6 @@ public class HomeActivity extends AppCompatActivity {
     /** Request code for QR code scanning */
     private static final int REQUEST_QR_SCAN = 1001;
 
-    private LinearLayout bottomNav;
-    private TextView tvMessagesUnreadBadge;
-    private TextView tvNotificationsUnreadBadge;
     private String email;
     private SessionManager sessionManager;
     private int currentSelectedTabId = R.id.nav_home;
@@ -47,7 +53,10 @@ public class HomeActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_home);
+
+        // Inflate ViewBinding
+        binding = ActivityHomeBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
 
         sessionManager = new SessionManager(this);
 
@@ -63,13 +72,10 @@ public class HomeActivity extends AppCompatActivity {
             sessionManager.createSession(email);
         }
 
-        // Initialize views
-        bottomNav = findViewById(R.id.bottomNav);
-        tvMessagesUnreadBadge = findViewById(R.id.tvMessagesUnreadBadge);
-        tvNotificationsUnreadBadge = findViewById(R.id.tvNotificationsUnreadBadge);
-        findViewById(R.id.btnMessagesTopBar).setOnClickListener(v -> openMessages());
-        findViewById(R.id.btnNotificationsTopBar).setOnClickListener(v -> openNotifications());
-        findViewById(R.id.btnScanQrTopBar).setOnClickListener(v -> scanQrCode());
+        // Initialize views using ViewBinding
+        binding.btnMessagesTopBar.setOnClickListener(v -> openMessages());
+        binding.btnNotificationsTopBar.setOnClickListener(v -> openNotifications());
+        binding.btnScanQrTopBar.setOnClickListener(v -> scanQrCode());
 
         if (savedInstanceState != null) {
             currentSelectedTabId = savedInstanceState.getInt("selected_tab_id", R.id.nav_home);
@@ -87,7 +93,7 @@ public class HomeActivity extends AppCompatActivity {
         int[] destinationIds = {R.id.nav_home, R.id.nav_search, R.id.nav_create,
                 R.id.nav_listings, R.id.nav_profile};
         for (int destinationId : destinationIds) {
-            View destination = bottomNav.findViewById(destinationId);
+            View destination = binding.bottomNav.findViewById(destinationId);
             destination.setOnClickListener(view -> onNavItemClicked(view.getId()));
         }
     }
@@ -114,6 +120,7 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     private void updateNavigationAppearance() {
+        // Use the original approach for bottom navigation since we know it works
         int[] destinationIds = {R.id.nav_home, R.id.nav_search, R.id.nav_create,
                 R.id.nav_listings, R.id.nav_profile};
         int[] iconIds = {R.id.ivNavHome, R.id.ivNavSearch, R.id.ivNavCreate,
@@ -125,10 +132,11 @@ public class HomeActivity extends AppCompatActivity {
 
         for (int i = 0; i < destinationIds.length; i++) {
             boolean selected = destinationIds[i] == currentSelectedTabId;
-            View destination = bottomNav.findViewById(destinationIds[i]);
+            View destination = binding.bottomNav.findViewById(destinationIds[i]);
             destination.setSelected(selected);
-            ImageView icon = bottomNav.findViewById(iconIds[i]);
-            TextView label = bottomNav.findViewById(labelIds[i]);
+            ImageView icon = (ImageView) binding.bottomNav.findViewById(iconIds[i]);
+            TextView label = (TextView) binding.bottomNav.findViewById(labelIds[i]);
+
             if (destinationIds[i] != R.id.nav_create) {
                 icon.setColorFilter(selected ? activeColor : inactiveColor);
             }
@@ -168,7 +176,7 @@ public class HomeActivity extends AppCompatActivity {
         }
 
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        transaction.replace(R.id.fragmentContainer, fragment);
+        transaction.replace(binding.fragmentContainer.getId(), fragment);
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
         transaction.commit();
     }
@@ -198,10 +206,10 @@ public class HomeActivity extends AppCompatActivity {
             public void onSuccess(Integer count) {
                 if (isFinishing() || isDestroyed()) return;
                 if (count != null && count > 0) {
-                    tvMessagesUnreadBadge.setVisibility(View.VISIBLE);
-                    tvMessagesUnreadBadge.setText(count > 99 ? "99+" : String.valueOf(count));
+                    binding.tvMessagesUnreadBadge.setVisibility(View.VISIBLE);
+                    binding.tvMessagesUnreadBadge.setText(count > 99 ? "99+" : String.valueOf(count));
                 } else {
-                    tvMessagesUnreadBadge.setVisibility(View.GONE);
+                    binding.tvMessagesUnreadBadge.setVisibility(View.GONE);
                 }
             }
 
@@ -220,10 +228,10 @@ public class HomeActivity extends AppCompatActivity {
             public void onSuccess(Integer count) {
                 if (isFinishing() || isDestroyed()) return;
                 if (count != null && count > 0) {
-                    tvNotificationsUnreadBadge.setVisibility(View.VISIBLE);
-                    tvNotificationsUnreadBadge.setText(count > 99 ? "99+" : String.valueOf(count));
+                    binding.tvNotificationsUnreadBadge.setVisibility(View.VISIBLE);
+                    binding.tvNotificationsUnreadBadge.setText(count > 99 ? "99+" : String.valueOf(count));
                 } else {
-                    tvNotificationsUnreadBadge.setVisibility(View.GONE);
+                    binding.tvNotificationsUnreadBadge.setVisibility(View.GONE);
                 }
             }
 
