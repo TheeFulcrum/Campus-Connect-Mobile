@@ -27,12 +27,25 @@ import com.bumptech.glide.Glide;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.WriterException;
+import com.google.zxing.common.BitMatrix;
+import com.google.zxing.qrcode.QRCodeWriter;
 
 import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import android.graphics.Bitmap;
+import android.graphics.Color;
+import android.graphics.drawable.BitmapDrawable;
+import android.net.Uri;
+import android.os.FileUtils;
+import androidx.core.content.FileProvider;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 
 public class ProfileFragment extends Fragment implements FollowListBottomSheet.FollowListListener {
 
@@ -60,6 +73,7 @@ public class ProfileFragment extends Fragment implements FollowListBottomSheet.F
     private View layoutOtherActions;
     private MaterialButton btnEditProfile;
     private MaterialButton btnViewArchive;
+    private MaterialButton btnProfileQr;
     private MaterialButton btnFollow;
     private MaterialButton btnMessage;
     private ImageButton btnCreate;
@@ -113,6 +127,7 @@ public class ProfileFragment extends Fragment implements FollowListBottomSheet.F
         layoutOtherActions = view.findViewById(R.id.layoutOtherActions);
         btnEditProfile = view.findViewById(R.id.btnEditProfile);
         btnViewArchive = view.findViewById(R.id.btnViewArchive);
+        btnProfileQr = view.findViewById(R.id.btnProfileQr);
         btnFollow = view.findViewById(R.id.btnFollow);
         btnMessage = view.findViewById(R.id.btnMessage);
         btnCreate = view.findViewById(R.id.btnProfileCreate);
@@ -156,6 +171,7 @@ public class ProfileFragment extends Fragment implements FollowListBottomSheet.F
         btnOtherMenu.setOnClickListener(v -> showOtherMenu());
         btnEditProfile.setOnClickListener(v -> showEditDialog());
         btnViewArchive.setOnClickListener(v -> openArchiveTab());
+        btnProfileQr.setOnClickListener(v -> showQrCode());
         btnFollow.setOnClickListener(v -> toggleFollow());
         btnMessage.setOnClickListener(v -> showMessageDialog());
         tvCountFollowers.setOnClickListener(v -> openFollowSheet("followers"));
@@ -477,6 +493,115 @@ public class ProfileFragment extends Fragment implements FollowListBottomSheet.F
         if (getActivity() instanceof HomeActivity) {
             ((HomeActivity) getActivity()).openProfile(username);
         }
+    }
+
+        /**
+     * Generates and shows a QR code for the current user's profile
+     * The QR code contains the username which can be scanned to quickly view/profile the user
+     */
+    private void showQrCode() {
+        if (profile == null || TextUtils.isEmpty(profile.username)) {
+            Toast.makeText(requireContext(), R.string.profile_qr_code_unavailable, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Inflate the QR code dialog view
+        View qrView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_qr_code, null);
+        ImageView ivQrCode = qrView.findViewById(R.id.ivQrCode);
+        TextView tvQrUsername = qrView.findViewById(R.id.tvQrUsername);
+        MaterialButton btnShareQr = qrView.findViewById(R.id.btnShareQr);
+
+        // Set the username text
+        tvQrUsername.setText("@" + profile.username);
+
+        // Generate and set the QR code
+        try {
+            Bitmap qrBitmap = generateQrCode(profile.username);
+            ivQrCode.setImageBitmap(qrBitmap);
+        } catch (WriterException e) {
+            Toast.makeText(requireContext(), R.string.profile_qr_code_generation_error, Toast.LENGTH_SHORT).show();
+            e.printStackTrace();
+            return;
+        }
+
+        // Set up share button
+        btnShareQr.setOnClickListener(v -> shareQrCode(ivQrCode));
+
+        // Show the dialog
+        new AlertDialog.Builder(requireContext())
+                .setView(qrView)
+                .setPositiveButton(R.string.action_close, null)
+                .show();
+    }
+
+    /**
+     * Generates a QR code bitmap from the given data
+     *
+     * @param data The data to encode in the QR code
+     * @return Bitmap representing the QR code
+     * @throws WriterException If QR code generation fails
+     */
+    private Bitmap generateQrCode(String data) throws WriterException {
+        QRCodeWriter qrCodeWriter = new QRCodeWriter();
+        BitMatrix bitMatrix = qrCodeWriter.encode(data, BarcodeFormat.QR_CODE, 512, 512);
+
+        int width = bitMatrix.getWidth();
+        int height = bitMatrix.getHeight();
+        Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                bitmap.setPixel(x, y, bitMatrix.get(x, y) ? Color.BLACK : Color.WHITE);
+            }
+        }
+        return bitmap;
+    }
+
+    /**
+     * Shares the QR code image via Android share intent
+     *
+     * @param qrImageView The ImageView containing the QR code to share
+     */
+    private void shareQrCode(ImageView qrImageView) {
+        if (qrImageView.getDrawable() == null) {
+            Toast.makeText(requireContext(), R.string.profile_qr_code_not_available, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        BitmapDrawable bitmapDrawable = ((BitmapDrawable) qrImageView.getDrawable());
+        Bitmap bitmap = bitmapDrawable.getBitmap();
+
+        // Save bitmap to cache directory
+        File cachePath = new File(requireContext().getCacheDir(), "images");
+        if (!cachePath.exists()) {
+            cachePath.mkdirs();
+        }
+        String filename = "qr_code_" + System.currentTimeMillis() + ".png";
+        File imageFile = new File(cachePath, filename);
+        FileOutputStream stream = null;
+        try {
+            stream = new FileOutputStream(imageFile);
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
+        } catch (IOException e) {
+            e.printStackTrace();
+            Toast.makeText(requireContext(), R.string.profile_qr_code_share_error, Toast.LENGTH_SHORT).show();
+            return;
+        } finally {
+            if (stream != null) {
+                try {
+                    stream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        // Share the image
+        Uri uri = FileProvider.getUriForFile(requireContext(), requireContext().getPackageName() + ".provider", imageFile);
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        shareIntent.setType("image/png");
+        shareIntent.putExtra(Intent.EXTRA_STREAM, uri);
+        shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        startActivity(Intent.createChooser(shareIntent, getString(R.string.profile_qr_code_share)));
     }
 
     private final class CollectionsAdapter extends RecyclerView.Adapter<CollectionsAdapter.CollectionHolder> {

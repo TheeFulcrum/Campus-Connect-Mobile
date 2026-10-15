@@ -53,17 +53,18 @@ Important activities include:
 
 ## Configuration
 
-The authentication API base URL is configured through the Gradle property:
+The authentication API base URL is configurable through the Gradle property `ccwApiBaseUrl`.
 
-```properties
-ccwApiBaseUrl=http://10.0.2.2:8000/
-```
-
-For Android Emulator development, `10.0.2.2` points to the host machine's localhost. To use a remote or deployed backend, provide the API URL when building:
-
-```bash
-./gradlew assembleDebug -PccwApiBaseUrl=https://your-api.example.com/
-```
+- **Default**: If not set, defaults to `https://auth.campusconnect.ink/` (production URL)
+- **Development**: For Android Emulator development against a local backend, override the property:
+  ```bash
+  ./gradlew assembleDebug -PccwApiBaseUrl=http://10.0.2.2:8000/
+  ```
+  Note: `10.0.2.2` is the special alias to the host machine's localhost in the Android emulator
+- **Production**: For remote or deployed backends, provide the API URL when building:
+  ```bash
+  ./gradlew assembleDebug -PccwApiBaseUrl=https://your-api.example.com/
+  ```
 
 The application currently permits cleartext traffic for local development. Use HTTPS for production deployments.
 

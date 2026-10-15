@@ -66,6 +66,11 @@ public class ProfileCacheDbHelper extends SQLiteOpenHelper {
         getWritableDatabase().insertWithOnConflict("profile_cache", null, values, SQLiteDatabase.CONFLICT_REPLACE);
     }
 
+    /**
+     * Get cached profile JSON for the given username.
+     * @return JSONObject containing the cached profile data, or null if no data is cached or on error.
+     *         Callers should check for null before using the returned object.
+     */
     public JSONObject getProfile(String username) {
         try (Cursor cursor = getReadableDatabase().rawQuery(
                 "SELECT json FROM profile_cache WHERE username = ?", new String[]{username.toLowerCase()})) {

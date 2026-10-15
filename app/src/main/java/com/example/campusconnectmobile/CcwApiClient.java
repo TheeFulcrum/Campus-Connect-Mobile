@@ -313,6 +313,26 @@ public final class CcwApiClient {
         listingAction("/api/listings/restore.php", listingId, token, callback);
     }
 
+    public static void getListing(int listingId, String token, Callback<Listing> callback) {
+        String url = CcwHttp.endpoint("/api/listings/view.php?listingId=" + listingId);
+        CcwHttp.get(url, token, new CcwHttp.JsonCallback() {
+            @Override
+            public void onSuccess(JSONObject json) {
+                JSONObject listingJson = json.optJSONObject("listing");
+                if (listingJson == null) {
+                    callback.onError("Listing not found.");
+                } else {
+                    callback.onSuccess(Listing.fromJson(listingJson));
+                }
+            }
+
+            @Override
+            public void onError(String message, int statusCode) {
+                callback.onError(message);
+            }
+        });
+    }
+
     private static void listingAction(String path, int listingId, String token, Callback<JSONObject> callback) {
         JSONObject body = new JSONObject();
         try {
@@ -483,6 +503,33 @@ public final class CcwApiClient {
             public void onSuccess(JSONObject json) {
                 JSONObject reviewJson = json.optJSONObject("review");
                 callback.onSuccess(reviewJson == null ? new Review() : Review.fromJson(reviewJson));
+            }
+
+            @Override
+            public void onError(String message, int statusCode) {
+                callback.onError(message);
+            }
+        });
+    }
+
+    public static void getReviews(String username, int page, String token, Callback<ReviewsPage> callback) {
+        String url = CcwHttp.endpoint("/api/reviews/list.php?username=" + CcwHttp.encode(username) + "&page=" + page);
+        CcwHttp.get(url, token, new CcwHttp.JsonCallback() {
+            @Override
+            public void onSuccess(JSONObject json) {
+                ReviewsPage page = new ReviewsPage();
+                JSONArray array = CcwHttp.optArray(json, "reviews");
+                for (int i = 0; i < array.length(); i++) {
+                    JSONObject item = array.optJSONObject(i);
+                    if (item != null) page.items.add(Review.fromJson(item));
+                }
+                page.pagination = Pagination.fromJson(json);
+                JSONObject rating = json.optJSONObject("rating");
+                if (rating != null) {
+                    page.ratingCount = rating.optInt("count", 0);
+                    page.ratingAverage = rating.optDouble("average", 0);
+                }
+                callback.onSuccess(page);
             }
 
             @Override

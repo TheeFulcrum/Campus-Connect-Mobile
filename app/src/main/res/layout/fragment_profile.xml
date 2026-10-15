@@ -198,6 +198,15 @@
                     android:layout_weight="1"
                     android:minHeight="@dimen/touch_target_min"
                     android:text="@string/profile_view_archive" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnProfileQr"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:minHeight="@dimen/touch_target_min"
+                    android:text="@string/profile_qr_code" />
             </LinearLayout>
 
             <LinearLayout

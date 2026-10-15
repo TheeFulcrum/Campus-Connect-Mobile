@@ -15,6 +15,7 @@ viewpager2 = "1.1.0"
 recyclerview = "1.4.0"
 glide = "4.16.0"
 lifecycleViewmodel = "2.9.2"
+zxing = "3.5.2"
 
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -33,6 +34,7 @@ recyclerview = { group = "androidx.recyclerview", name = "recyclerview", version
 glide = { group = "com.github.bumptech.glide", name = "glide", version.ref = "glide" }
 lifecycle-viewmodel = { group = "androidx.lifecycle", name = "lifecycle-viewmodel", version.ref = "lifecycleViewmodel" }
 lifecycle-livedata = { group = "androidx.lifecycle", name = "lifecycle-livedata", version.ref = "lifecycleViewmodel" }
+zxing-core = { group = "com.journeyapps", name = "zxing-android-embedded", version.ref = "zxing" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

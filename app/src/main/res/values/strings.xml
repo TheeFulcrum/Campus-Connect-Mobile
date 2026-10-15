@@ -111,4 +111,23 @@
     <string name="review_submit">Submit review</string>
     <string name="review_submitted">Review submitted.</string>
     <string name="review_rating_required">Choose a rating from 1 to 5.</string>
+    <string name="profile_qr_code">QR Code</string>
+    <string name="profile_qr_code_unavailable">Unable to generate QR code</string>
+    <string name="profile_qr_code_generation_error">Could not generate QR code</string>
+    <string name="profile_qr_code_not_available">QR code not available</string>
+    <string name="profile_qr_code_share">Share QR Code</string>
+    <string name="profile_qr_code_share_error">Could not share QR code</string>
+    <string name="action_scan_qr_code">Scan QR Code</string>
+    <string name="qr_code_scan_error">Could not scan QR code</string>
+    <string name="qr_code_no_username">Scanned code does not contain a valid username</string>
+    <string name="qr_code_scanner_not_found">QR Code Scanner Not Found</string>
+    <string name="qr_code_scanner_download_prompt">Please install a QR code scanner app to use this feature.</string>
+    <string name="action_download">Download</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="qr_code_scan_cancelled">QR code scan cancelled</string>
+    <string name="profile_found_opening">Opening profile for @%1$s</string>
+</resources>
+</resources>
+</resources>
+</resources>
 </resources>

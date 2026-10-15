@@ -69,6 +69,23 @@
                 </FrameLayout>
 
                 <FrameLayout
+                    android:id="@+id/btnScanQrTopBar"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/action_scan_qr_code">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_tab_scan"
+                        app:tint="@color/colorTextPrimary" />
+
+                    <!-- No badge needed for QR scan -->
+                </FrameLayout>
+
+                <FrameLayout
                     android:id="@+id/btnMessagesTopBar"
                     android:layout_width="48dp"
                     android:layout_height="48dp"
