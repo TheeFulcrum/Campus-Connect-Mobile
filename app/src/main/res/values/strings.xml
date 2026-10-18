@@ -82,6 +82,13 @@
     <string name="profile_rating_format">%1$.1f★</string>
     <string name="profile_review_no_comment">No comment provided.</string>
     <string name="profile_logout">Log out</string>
+    <string name="profile_menu">Profile menu</string>
+    <string name="profile_menu_appearance">Appearance</string>
+    <string name="profile_theme_system">System default</string>
+    <string name="profile_theme_light">Light</string>
+    <string name="profile_theme_dark">Dark</string>
+    <string name="profile_logout_confirm_title">Log out?</string>
+    <string name="profile_logout_confirm_message">You will need to log in again to use Campus Connect.</string>
     <string name="profile_report">Report user</string>
     <string name="profile_report_ack">Thanks. We have recorded your report request.</string>
     <string name="profile_bio_empty">No bio yet.</string>

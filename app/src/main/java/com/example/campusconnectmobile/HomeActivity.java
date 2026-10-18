@@ -11,16 +11,21 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+import androidx.activity.result.ActivityResultLauncher;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
 // ViewBinding import
 import com.example.campusconnectmobile.databinding.ActivityHomeBinding;
 
-import java.util.List;
+import com.journeyapps.barcodescanner.ScanContract;
+import com.journeyapps.barcodescanner.ScanOptions;
 
 public class HomeActivity extends AppCompatActivity {
 
@@ -32,13 +37,20 @@ public class HomeActivity extends AppCompatActivity {
     /** How often the unread messages badge is refreshed while the app is in the foreground. */
     private static final long UNREAD_POLL_INTERVAL_MS = 20_000L;
 
-    /** Request code for QR code scanning */
-    private static final int REQUEST_QR_SCAN = 1001;
 
     private String email;
     private SessionManager sessionManager;
     private int currentSelectedTabId = R.id.nav_home;
     private String profileUsernameOverride;
+
+    private final ActivityResultLauncher<ScanOptions> qrScanLauncher = registerForActivityResult(
+            new ScanContract(), result -> {
+                if (result.getContents() == null) {
+                    Toast.makeText(this, getString(R.string.qr_code_scan_cancelled), Toast.LENGTH_SHORT).show();
+                } else {
+                    handleQrScanResult(result.getContents());
+                }
+            });
 
     private final Handler unreadHandler = new Handler(Looper.getMainLooper());
     private final Runnable unreadPollRunnable = new Runnable() {
@@ -57,6 +69,14 @@ public class HomeActivity extends AppCompatActivity {
         // Inflate ViewBinding
         binding = ActivityHomeBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+
+        // Targeting SDK 35+ draws edge-to-edge, so keep the toolbar and bottom nav clear of the system bars
+        ViewCompat.setOnApplyWindowInsetsListener(binding.getRoot(), (view, windowInsets) -> {
+            Insets bars = windowInsets.getInsets(
+                    WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout());
+            view.setPadding(bars.left, bars.top, bars.right, bars.bottom);
+            return WindowInsetsCompat.CONSUMED;
+        });
 
         sessionManager = new SessionManager(this);
 
@@ -247,47 +267,12 @@ public class HomeActivity extends AppCompatActivity {
      * If a username is scanned, opens that user's profile.
      */
     private void scanQrCode() {
-        // Try to use a QR code scanning intent (like Barcode Scanner by ZXing Team)
-        Intent intent = new Intent("com.google.zxing.client.android.SCAN");
-        intent.putExtra("SCAN_FORMATS", "QR_CODE");
-
-        // Check if there's an app to handle this intent
-        PackageManager packageManager = getPackageManager();
-        List<ResolveInfo> activities = packageManager.queryIntentActivities(intent, 0);
-        boolean isIntentSafe = activities.size() > 0;
-
-        if (isIntentSafe) {
-            startActivityForResult(intent, REQUEST_QR_SCAN);
-        } else {
-            // If no scanner app is available, show a dialog to download one
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle(getString(R.string.qr_code_scanner_not_found));
-            builder.setMessage(getString(R.string.qr_code_scanner_download_prompt));
-            builder.setPositiveButton(getString(R.string.action_download), (dialog, which) -> {
-                // Open Play Store to Barcode Scanner app
-                Intent marketIntent = new Intent(Intent.ACTION_VIEW);
-                marketIntent.setData(Uri.parse("market://details?id=com.google.zxing.client.android"));
-                startActivity(marketIntent);
-            });
-            builder.setNegativeButton(getString(R.string.action_cancel), null);
-            builder.show();
-        }
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQUEST_QR_SCAN) {
-            if (resultCode == RESULT_OK) {
-                String contents = data.getStringExtra("SCAN_RESULT");
-                String format = data.getStringExtra("SCAN_RESULT_FORMAT");
-                // Handle successful scan
-                handleQrScanResult(contents);
-            } else if (resultCode == RESULT_CANCELED) {
-                // Handle cancel
-                Toast.makeText(this, getString(R.string.qr_code_scan_cancelled), Toast.LENGTH_SHORT).show();
-            }
-        }
+        ScanOptions options = new ScanOptions()
+                .setDesiredBarcodeFormats(ScanOptions.QR_CODE)
+                .setBeepEnabled(false)
+                .setOrientationLocked(false)
+                .setPrompt(getString(R.string.action_scan_qr_code));
+        qrScanLauncher.launch(options);
     }
 
     /**

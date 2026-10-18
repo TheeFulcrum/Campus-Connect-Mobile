@@ -1,15 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.swiperefreshlayout.widget.SwipeRefreshLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/swipeProfile"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/colorBackground"
-    android:orientation="vertical">
+    android:background="@color/colorBackground">
 
-    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-        android:id="@+id/swipeProfile"
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="match_parent">
+
+        <com.google.android.material.appbar.AppBarLayout
+            android:id="@+id/appBarProfile"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/colorBackground"
+            app:elevation="0dp"
+            app:liftOnScroll="false">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -17,7 +24,9 @@
             android:orientation="vertical"
             android:paddingStart="@dimen/spacing_m"
             android:paddingTop="@dimen/spacing_s"
-            android:paddingEnd="@dimen/spacing_m">
+            android:paddingEnd="@dimen/spacing_m"
+            android:paddingBottom="@dimen/spacing_s"
+            app:layout_scrollFlags="scroll">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -49,9 +58,9 @@
                     android:layout_width="@dimen/touch_target_min"
                     android:layout_height="@dimen/touch_target_min"
                     android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="@string/profile_more_actions"
+                    android:contentDescription="@string/profile_menu"
                     android:padding="12dp"
-                    android:src="@drawable/ic_more_horiz"
+                    android:src="@drawable/ic_menu"
                     app:tint="@color/colorTextPrimary" />
             </LinearLayout>
 
@@ -97,6 +106,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textColor="@color/colorTextPrimary"
+                        android:textSize="18sp"
                         android:textStyle="bold" />
                     <TextView
                         android:layout_width="wrap_content"
@@ -116,6 +126,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textColor="@color/colorTextPrimary"
+                        android:textSize="18sp"
                         android:textStyle="bold" />
                     <TextView
                         android:layout_width="wrap_content"
@@ -135,6 +146,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textColor="@color/colorTextPrimary"
+                        android:textSize="18sp"
                         android:textStyle="bold" />
                     <TextView
                         android:layout_width="wrap_content"
@@ -265,20 +277,22 @@
                 android:clipToPadding="false"
                 android:paddingEnd="@dimen/spacing_s" />
         </LinearLayout>
-    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
-    <com.google.android.material.tabs.TabLayout
-        android:id="@+id/profileTabs"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:tabIndicatorColor="@color/colorAccent"
-        app:tabIndicatorFullWidth="false"
-        app:tabMode="fixed"
-        app:tabRippleColor="@color/colorBorder" />
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/profileTabs"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/colorBackground"
+            app:tabIndicatorColor="@color/colorAccent"
+            app:tabIndicatorFullWidth="false"
+            app:tabMode="fixed"
+            app:tabRippleColor="@color/colorBorder" />
+        </com.google.android.material.appbar.AppBarLayout>
 
-    <androidx.viewpager2.widget.ViewPager2
-        android:id="@+id/profilePager"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1" />
-</LinearLayout>
+        <androidx.viewpager2.widget.ViewPager2
+            android:id="@+id/profilePager"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+</androidx.swiperefreshlayout.widget.SwipeRefreshLayout>

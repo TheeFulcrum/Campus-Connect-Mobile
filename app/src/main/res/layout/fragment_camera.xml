@@ -12,7 +12,7 @@
         android:text="Create a listing"
         android:textSize="24sp"
         android:textStyle="bold"
-        android:textColor="@color/colorPrimary"
+        android:textColor="@color/colorBrandText"
         android:layout_marginBottom="6dp" />
 
     <TextView

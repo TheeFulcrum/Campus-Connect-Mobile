@@ -9,6 +9,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
 public class MainActivity extends AppCompatActivity {
@@ -21,6 +23,13 @@ public class MainActivity extends AppCompatActivity {
     private Button btnLogin;
     private DatabaseHelper dbHelper;
     private boolean continueToPreferences;
+    private final ActivityResultLauncher<Intent> forgotPasswordLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(), result -> {
+                if (result.getResultCode() == RESULT_OK) {
+                    etPassword.setText("");
+                    hideError();
+                }
+            });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,6 +53,11 @@ public class MainActivity extends AppCompatActivity {
         btnLogin.setOnClickListener(v -> attemptLogin());
         tvSignUp.setOnClickListener(v ->
                 startActivity(new Intent(MainActivity.this, SignUpActivity.class)));
+        findViewById(R.id.tvForgotPassword).setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, ForgotPasswordActivity.class);
+            intent.putExtra(ForgotPasswordActivity.EXTRA_EMAIL, etEmail.getText().toString().trim());
+            forgotPasswordLauncher.launch(intent);
+        });
     }
 
     private void attemptLogin() {

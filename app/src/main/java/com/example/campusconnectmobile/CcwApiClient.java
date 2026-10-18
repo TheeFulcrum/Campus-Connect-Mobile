@@ -258,6 +258,7 @@ public final class CcwApiClient {
                                      String campus, List<String> imageIds, String token, Callback<Listing> callback) {
         JSONObject body = new JSONObject();
         try {
+            body.put("action", "create_listing");
             body.put("title", title);
             body.put("description", description);
             body.put("price", price);
@@ -277,7 +278,8 @@ public final class CcwApiClient {
                                      String campus, List<String> imageIds, String token, Callback<Listing> callback) {
         JSONObject body = new JSONObject();
         try {
-            body.put("listing_id", listingId);
+            body.put("action", "update_listing");
+            body.put("id", listingId);
             if (title != null) body.put("title", title);
             if (description != null) body.put("description", description);
             if (price >= 0) body.put("price", price);
@@ -314,7 +316,7 @@ public final class CcwApiClient {
     }
 
     public static void getListing(int listingId, String token, Callback<Listing> callback) {
-        String url = CcwHttp.endpoint("/api/listings/view.php?listingId=" + listingId);
+        String url = CcwHttp.endpoint("/api/listings/view.php?id=" + listingId);
         CcwHttp.get(url, token, new CcwHttp.JsonCallback() {
             @Override
             public void onSuccess(JSONObject json) {

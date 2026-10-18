@@ -10,6 +10,8 @@
     <!-- Brand colors stay the same -->
     <color name="colorPrimary">#243B6B</color>
     <color name="colorPrimaryDark">#182747</color>
+    <color name="colorBrandText">#9DB4EE</color>
+    <color name="colorOnBrand">#0F1B38</color>
     <color name="colorAccent">#FF6B45</color>
     <color name="colorAccentDark">#E0532B</color>
     <color name="colorSuccess">#2E9E6E</color>

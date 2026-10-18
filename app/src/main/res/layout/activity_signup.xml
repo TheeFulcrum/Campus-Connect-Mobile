@@ -15,7 +15,7 @@
             android:text="Create Account"
             android:textSize="30sp"
             android:textStyle="bold"
-            android:textColor="@color/colorPrimary"
+            android:textColor="@color/colorBrandText"
             android:layout_marginBottom="8dp" />
 
         <TextView

@@ -3,6 +3,9 @@
     <!-- Campus Connect brand palette matching the website -->
     <color name="colorPrimary">#243B6B</color>
     <color name="colorPrimaryDark">#182747</color>
+    <!-- Brand blue for text and outlines; lightened in the night palette so it stays readable -->
+    <color name="colorBrandText">#243B6B</color>
+    <color name="colorOnBrand">#FFFFFF</color>
     <color name="colorAccent">#FF6B45</color>
     <color name="colorAccentDark">#E0532B</color>
     <color name="colorSuccess">#2E9E6E</color>

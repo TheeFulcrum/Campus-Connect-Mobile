@@ -17,7 +17,7 @@
             android:text="Campus"
             android:textSize="36sp"
             android:textStyle="bold"
-            android:textColor="@color/colorPrimary" />
+            android:textColor="@color/colorBrandText" />
 
         <TextView
             android:layout_width="wrap_content"
