@@ -122,6 +122,17 @@
                 android:textColor="@color/white" />
 
             <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnAddToCollection"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/spacing_m"
+                android:layout_marginTop="@dimen/spacing_s"
+                android:layout_marginEnd="@dimen/spacing_m"
+                android:minHeight="@dimen/touch_target_min"
+                android:text="@string/listing_add_to_collection" />
+
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnEditListing"
                 style="@style/Widget.Material3.Button.OutlinedButton"
                 android:layout_width="match_parent"

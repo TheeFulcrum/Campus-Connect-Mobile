@@ -13,6 +13,7 @@ public class Collection {
     public String createdAt;
     public int itemCount;
     public final List<Integer> listingIds = new ArrayList<>();
+    public final List<Listing> items = new ArrayList<>();
 
     public static Collection fromJson(JSONObject json) {
         Collection collection = new Collection();
@@ -25,7 +26,14 @@ public class Collection {
             for (int i = 0; i < items.length(); i++) {
                 JSONObject item = items.optJSONObject(i);
                 if (item != null) {
-                    collection.listingIds.add(item.optInt("listing_id", item.optInt("id", 0)));
+                    int listingId = item.optInt("listing_id", item.optInt("id", 0));
+                    collection.listingIds.add(listingId);
+                    try {
+                        // The server names the listing id "listing_id" here
+                        item.put("id", listingId);
+                    } catch (org.json.JSONException ignored) {
+                    }
+                    collection.items.add(Listing.fromJson(item));
                 }
             }
         }

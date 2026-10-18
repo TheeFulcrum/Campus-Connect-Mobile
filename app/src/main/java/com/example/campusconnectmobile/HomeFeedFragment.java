@@ -1,34 +1,37 @@
 package com.example.campusconnectmobile;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
-import android.widget.TextView;
-import android.os.Handler;
-import android.os.Looper;
 
-// ViewBinding import
 import com.example.campusconnectmobile.databinding.FragmentHomeFeedBinding;
 
-import com.facebook.shimmer.ShimmerFrameLayout;
+import org.json.JSONObject;
 
-import java.util.List;
-
+/** Home tab: the latest listings on the user's campus, straight from the server. */
 public class HomeFeedFragment extends Fragment {
 
     private static final String ARG_EMAIL = "arg_email";
-    private final Handler feedHandler = new Handler(Looper.getMainLooper());
-    private Runnable loadRunnable;
+    private static final int PAGE_SIZE = 20;
 
-    // ViewBinding
     private FragmentHomeFeedBinding binding;
+    private FeedAdapter adapter;
+    private SessionManager sessionManager;
+    private String campus;
+
+    private int currentPage = 1;
+    private boolean isLoading = false;
+    private boolean hasMore = true;
+    private boolean loadedOnce = false;
 
     public static HomeFeedFragment newInstance(String email) {
         HomeFeedFragment fragment = new HomeFeedFragment();
@@ -42,90 +45,127 @@ public class HomeFeedFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        // Inflate ViewBinding
         binding = FragmentHomeFeedBinding.inflate(inflater, container, false);
-
-        // Set up swipe to refresh
-        binding.swipeRefresh.setOnRefreshListener(() -> {
-            // Prevent multiple simultaneous refreshes
-            if (!binding.swipeRefresh.isRefreshing()) {
-                binding.swipeRefresh.setRefreshing(true);
-                loadFeedData();
-            }
-        });
-
-        // Start shimmer effect
-        binding.shimmerViewContainer.startShimmer();
+        sessionManager = new SessionManager(requireContext());
 
         String email = getArguments() != null ? getArguments().getString(ARG_EMAIL) : null;
-        DatabaseHelper dbHelper = new DatabaseHelper(requireContext());
+        DatabaseHelper.UserProfile profile = email == null ? null : new DatabaseHelper(requireContext()).getProfile(email);
+        campus = profile == null || profile.campusLocation == null || profile.campusLocation.isEmpty()
+                ? null : profile.campusLocation;
+        binding.tvFeedHeader.setText(campus == null ? getString(R.string.app_name) : campus + " Feed");
+        binding.tvEmptyFeed.setText(R.string.feed_empty);
 
-        DatabaseHelper.UserProfile profile = email == null ? null : dbHelper.getProfile(email);
-        if (profile != null && profile.username != null) {
-            binding.tvFeedHeader.setText(profile.campusLocation + " Feed");
-            loadRunnable = () -> {
-                if (!isAdded() || getView() == null) return;
-                List<DatabaseHelper.Post> posts = dbHelper.getFeedForUser(
-                        profile.campusLocation, profile.preferences);
-                finishLoading(binding.shimmerViewContainer, binding.tvEmptyFeed, binding.rvFeed, posts);
-                // Stop refreshing if we were refreshing
-                if (binding.swipeRefresh.isRefreshing()) {
-                    binding.swipeRefresh.setRefreshing(false);
-                }
-            };
-            feedHandler.postDelayed(loadRunnable, 300);
-        } else {
-            finishLoading(binding.shimmerViewContainer, binding.tvEmptyFeed, binding.rvFeed, java.util.Collections.emptyList());
-            binding.tvEmptyFeed.setText("Complete your profile to see campus listings.");
-            // Stop refreshing if we were refreshing
-            if (binding.swipeRefresh.isRefreshing()) {
-                binding.swipeRefresh.setRefreshing(false);
+        adapter = new FeedAdapter(sessionManager.getLoggedInUsername(), new FeedAdapter.Listener() {
+            @Override
+            public void onOpen(Listing listing) {
+                Intent intent = new Intent(requireContext(), ListingDetailActivity.class);
+                intent.putExtra(ListingDetailActivity.EXTRA_LISTING, listing);
+                startActivity(intent);
             }
-        }
 
+            @Override
+            public void onToggleSave(Listing listing) {
+                toggleSave(listing);
+            }
+        });
+        LinearLayoutManager layoutManager = new LinearLayoutManager(requireContext());
+        binding.rvFeed.setLayoutManager(layoutManager);
+        binding.rvFeed.setAdapter(adapter);
+        binding.rvFeed.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                if (dy <= 0 || isLoading || !hasMore) return;
+                if (layoutManager.findLastVisibleItemPosition() >= adapter.getItemCount() - 3) {
+                    loadPage(currentPage + 1);
+                }
+            }
+        });
+        binding.swipeRefresh.setOnRefreshListener(() -> loadPage(1));
+
+        binding.shimmerViewContainer.startShimmer();
+        loadPage(1);
         return binding.getRoot();
     }
 
-    private void loadFeedData() {
-        String email = getArguments() != null ? getArguments().getString(ARG_EMAIL) : null;
-        DatabaseHelper dbHelper = new DatabaseHelper(requireContext());
-
-        DatabaseHelper.UserProfile profile = email == null ? null : dbHelper.getProfile(email);
-        if (profile != null && profile.username != null) {
-            List<DatabaseHelper.Post> posts = dbHelper.getFeedForUser(
-                    profile.campusLocation, profile.preferences);
-            finishLoading(binding.shimmerViewContainer, binding.tvEmptyFeed, binding.rvFeed, posts);
-        } else {
-            finishLoading(binding.shimmerViewContainer, binding.tvEmptyFeed, binding.rvFeed, java.util.Collections.emptyList());
-            binding.tvEmptyFeed.setText("Complete your profile to see campus listings.");
-        }
-        // Stop refreshing
-        if (binding.swipeRefresh.isRefreshing()) {
-            binding.swipeRefresh.setRefreshing(false);
-        }
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Pick up listings posted or changed while another screen was on top
+        if (loadedOnce && !isLoading) loadPage(1);
     }
 
-    private void finishLoading(ShimmerFrameLayout shimmerLayout, TextView tvEmpty,
-                               RecyclerView rvFeed, List<DatabaseHelper.Post> posts) {
-        shimmerLayout.stopShimmer();
-        shimmerLayout.setVisibility(View.GONE);
-        if (posts.isEmpty()) {
-            tvEmpty.setVisibility(View.VISIBLE);
-            rvFeed.setVisibility(View.GONE);
+    private void loadPage(int page) {
+        if (isLoading || binding == null) return;
+        isLoading = true;
+        CcwApiClient.listListings(campus, null, page, PAGE_SIZE, sessionManager.getAuthToken(),
+                new CcwApiClient.Callback<ListPage<Listing>>() {
+                    @Override
+                    public void onSuccess(ListPage<Listing> result) {
+                        if (!isAdded() || binding == null) return;
+                        isLoading = false;
+                        loadedOnce = true;
+                        currentPage = page;
+                        hasMore = result.hasMore() && !result.items.isEmpty();
+                        if (page == 1) {
+                            adapter.submitList(result.items);
+                        } else {
+                            adapter.appendList(result.items);
+                        }
+                        showContent();
+                    }
+
+                    @Override
+                    public void onError(String message) {
+                        if (!isAdded() || binding == null) return;
+                        isLoading = false;
+                        String text = message == null || message.isEmpty()
+                                ? getString(R.string.generic_offline_message) : message;
+                        if (adapter.isEmpty()) {
+                            binding.tvEmptyFeed.setText(text);
+                        } else {
+                            Toast.makeText(requireContext(), text, Toast.LENGTH_SHORT).show();
+                        }
+                        showContent();
+                    }
+                });
+    }
+
+    private void showContent() {
+        binding.shimmerViewContainer.stopShimmer();
+        binding.shimmerViewContainer.setVisibility(View.GONE);
+        binding.swipeRefresh.setRefreshing(false);
+        boolean empty = adapter.isEmpty();
+        binding.tvEmptyFeed.setVisibility(empty ? View.VISIBLE : View.GONE);
+        binding.rvFeed.setVisibility(empty ? View.GONE : View.VISIBLE);
+    }
+
+    private void toggleSave(Listing listing) {
+        CcwApiClient.Callback<JSONObject> callback = new CcwApiClient.Callback<JSONObject>() {
+            @Override
+            public void onSuccess(JSONObject result) {
+                if (!isAdded() || binding == null) return;
+                listing.isSaved = result.optBoolean("saved", !listing.isSaved);
+                listing.saves = result.optInt("saves", listing.saves);
+                adapter.updateListing(listing);
+            }
+
+            @Override
+            public void onError(String message) {
+                if (!isAdded()) return;
+                Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show();
+            }
+        };
+        String token = sessionManager.getAuthToken();
+        if (listing.isSaved) {
+            CcwApiClient.unsaveListing(listing.id, token, callback);
         } else {
-            tvEmpty.setVisibility(View.GONE);
-            rvFeed.setVisibility(View.VISIBLE);
-            rvFeed.setAdapter(new PostAdapter(posts));
+            CcwApiClient.saveListing(listing.id, token, callback);
         }
     }
 
     @Override
     public void onDestroyView() {
-        if (loadRunnable != null) {
-            feedHandler.removeCallbacks(loadRunnable);
-        }
         super.onDestroyView();
-        // Clean up binding reference to prevent memory leaks
         binding = null;
     }
 }

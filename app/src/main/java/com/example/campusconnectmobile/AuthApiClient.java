@@ -43,6 +43,9 @@ public final class AuthApiClient {
         void onError(String message);
     }
 
+    /** Reported when the server could not be reached at all, as opposed to rejecting the request. */
+    public static final String NETWORK_ERROR = "Unable to reach the Campus Connect server.";
+
     private static final ExecutorService EXECUTOR = Executors.newSingleThreadExecutor();
     private static final Handler MAIN_THREAD = new Handler(Looper.getMainLooper());
 
@@ -190,7 +193,7 @@ public final class AuthApiClient {
                         user.optString("avatar", "")
                 ));
             } catch (Exception exception) {
-                postError(callback, "Unable to reach the Campus Connect server.");
+                postError(callback, NETWORK_ERROR);
             }
         });
     }

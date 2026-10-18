@@ -502,6 +502,13 @@ public class ProfileFragment extends Fragment implements FollowListBottomSheet.F
         }
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Collection contents change on their own screen
+        if (collectionsAdapter != null && sessionManager != null) loadCollections();
+    }
+
     private void loadCollections() {
         CcwApiClient.listCollections(sessionManager.getAuthToken(), new CcwApiClient.Callback<List<Collection>>() {
             @Override
@@ -709,10 +716,12 @@ public class ProfileFragment extends Fragment implements FollowListBottomSheet.F
             holder.name.setText(collection.name == null || collection.name.isEmpty()
                     ? getString(R.string.profile_collection_default_name, collection.id)
                     : collection.name);
-            holder.itemView.setOnClickListener(v ->
-                    Toast.makeText(requireContext(),
-                            getString(R.string.profile_collection_items_count, collection.itemCount),
-                            Toast.LENGTH_SHORT).show());
+            holder.itemView.setOnClickListener(v -> {
+                Intent intent = new Intent(requireContext(), CollectionActivity.class);
+                intent.putExtra(CollectionActivity.EXTRA_COLLECTION_ID, collection.id);
+                intent.putExtra(CollectionActivity.EXTRA_COLLECTION_NAME, collection.name);
+                startActivity(intent);
+            });
         }
 
         @Override

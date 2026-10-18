@@ -42,6 +42,7 @@ public class ListingsFragment extends Fragment {
     private int currentPage = 1;
     private boolean isLoading = false;
     private boolean hasMore = true;
+    private boolean loadedOnce = false;
 
     public static ListingsFragment newInstance() {
         return new ListingsFragment();
@@ -91,6 +92,13 @@ public class ListingsFragment extends Fragment {
         return view;
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Pick up listings posted or changed while another screen was on top
+        if (loadedOnce) loadPage(1, true);
+    }
+
     private void openListing(Listing listing) {
         Intent intent = new Intent(requireContext(), ListingDetailActivity.class);
         intent.putExtra(ListingDetailActivity.EXTRA_LISTING, listing);
@@ -115,6 +123,7 @@ public class ListingsFragment extends Fragment {
             public void onSuccess(ListPage<Listing> result) {
                 if (!isAdded()) return;
                 isLoading = false;
+                loadedOnce = true;
                 currentPage = page;
                 hasMore = result.hasMore();
                 finishLoading();

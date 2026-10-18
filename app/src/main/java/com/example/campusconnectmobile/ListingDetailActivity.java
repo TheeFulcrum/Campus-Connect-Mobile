@@ -71,6 +71,7 @@ public class ListingDetailActivity extends AppCompatActivity {
         saveButton = findViewById(R.id.btnSaveListing);
         messageButton = findViewById(R.id.btnMessageSeller);
         editButton = findViewById(R.id.btnEditListing);
+        findViewById(R.id.btnAddToCollection).setOnClickListener(v -> showCollectionPicker());
         soldButton = findViewById(R.id.btnMarkListingSold);
         archiveButton = findViewById(R.id.btnArchiveListing);
         restoreButton = findViewById(R.id.btnRestoreListing);
@@ -90,6 +91,87 @@ public class ListingDetailActivity extends AppCompatActivity {
                 R.string.listing_archive_confirm, R.string.listing_action_confirm, this::archive));
         restoreButton.setOnClickListener(v -> restore());
         reviewButton.setOnClickListener(v -> showReviewDialog());
+    }
+
+    private void showCollectionPicker() {
+        String token = sessionManager.getAuthToken();
+        CcwApiClient.listCollections(token, new CcwApiClient.Callback<java.util.List<Collection>>() {
+            @Override
+            public void onSuccess(java.util.List<Collection> collections) {
+                if (isFinishing() || isDestroyed()) return;
+                String[] names = new String[collections.size() + 1];
+                for (int i = 0; i < collections.size(); i++) {
+                    Collection collection = collections.get(i);
+                    names[i] = collection.name == null || collection.name.isEmpty()
+                            ? getString(R.string.profile_collection_default_name, collection.id) : collection.name;
+                }
+                names[collections.size()] = getString(R.string.collection_new_option);
+                new androidx.appcompat.app.AlertDialog.Builder(ListingDetailActivity.this)
+                        .setTitle(R.string.collection_pick_title)
+                        .setItems(names, (dialog, which) -> {
+                            if (which == collections.size()) {
+                                promptNewCollection();
+                            } else {
+                                addToCollection(collections.get(which).id);
+                            }
+                        })
+                        .show();
+            }
+
+            @Override
+            public void onError(String message) {
+                if (isFinishing() || isDestroyed()) return;
+                Toast.makeText(ListingDetailActivity.this, message, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void promptNewCollection() {
+        EditText input = new EditText(this);
+        input.setHint(R.string.profile_collection_name_hint);
+        androidx.appcompat.app.AlertDialog dialog = new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle(R.string.profile_collection_new)
+                .setView(input)
+                .setNegativeButton(R.string.listing_action_cancel, null)
+                .setPositiveButton(R.string.listing_action_confirm, null)
+                .create();
+        dialog.setOnShowListener(ignored -> dialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE)
+                .setOnClickListener(v -> {
+                    String name = input.getText() == null ? "" : input.getText().toString().trim();
+                    if (name.isEmpty()) {
+                        input.setError(getString(R.string.profile_collection_name_hint));
+                        return;
+                    }
+                    CcwApiClient.createCollection(name, sessionManager.getAuthToken(),
+                            new CcwApiClient.Callback<Collection>() {
+                                @Override
+                                public void onSuccess(Collection created) {
+                                    dialog.dismiss();
+                                    addToCollection(created.id);
+                                }
+
+                                @Override
+                                public void onError(String message) {
+                                    Toast.makeText(ListingDetailActivity.this, message, Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                }));
+        dialog.show();
+    }
+
+    private void addToCollection(int collectionId) {
+        CcwApiClient.addCollectionItem(collectionId, listing.id, sessionManager.getAuthToken(),
+                new CcwApiClient.Callback<org.json.JSONObject>() {
+                    @Override
+                    public void onSuccess(org.json.JSONObject result) {
+                        Toast.makeText(ListingDetailActivity.this, R.string.collection_added, Toast.LENGTH_SHORT).show();
+                    }
+
+                    @Override
+                    public void onError(String message) {
+                        Toast.makeText(ListingDetailActivity.this, message, Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 
     private static Listing getListingExtra(Intent intent) {

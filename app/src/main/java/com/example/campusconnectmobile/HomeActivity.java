@@ -455,6 +455,8 @@ public class HomeActivity extends AppCompatActivity {
 
             @Override
             public void onError(String message) {
+                // Being offline must not sign the user out; only a rejected session should
+                if (AuthApiClient.NETWORK_ERROR.equals(message)) return;
                 sessionManager.clearSession();
                 redirectToLogin();
             }

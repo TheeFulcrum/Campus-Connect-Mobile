@@ -27,9 +27,14 @@ public class ListingsAdapter extends RecyclerView.Adapter<ListingsAdapter.Listin
 
     private final List<Listing> listings = new ArrayList<>();
     private final OnListingClickListener listener;
+    private OnListingClickListener longClickListener;
 
     public ListingsAdapter(OnListingClickListener listener) {
         this.listener = listener;
+    }
+
+    public void setLongClickListener(OnListingClickListener longClickListener) {
+        this.longClickListener = longClickListener;
     }
 
     public void submitList(List<Listing> newListings) {
@@ -81,7 +86,7 @@ public class ListingsAdapter extends RecyclerView.Adapter<ListingsAdapter.Listin
 
     @Override
     public void onBindViewHolder(@NonNull ListingViewHolder holder, int position) {
-        holder.bind(listings.get(position), listener);
+        holder.bind(listings.get(position), listener, longClickListener);
     }
 
     @Override
@@ -105,7 +110,7 @@ public class ListingsAdapter extends RecyclerView.Adapter<ListingsAdapter.Listin
             tvUrgency = itemView.findViewById(R.id.tvListingUrgency);
         }
 
-        void bind(Listing listing, OnListingClickListener listener) {
+        void bind(Listing listing, OnListingClickListener listener, OnListingClickListener longClickListener) {
             String cover = listing.coverImage != null && !listing.coverImage.isEmpty()
                     ? listing.coverImage
                     : (listing.imageUrls.isEmpty() ? "" : listing.imageUrls.get(0));
@@ -125,6 +130,10 @@ public class ListingsAdapter extends RecyclerView.Adapter<ListingsAdapter.Listin
             tvUrgency.setVisibility(urgency == null || listing.isSold() ? View.GONE : View.VISIBLE);
             itemView.setOnClickListener(v -> {
                 if (listener != null) listener.onListingClick(listing);
+            });
+            itemView.setOnLongClickListener(longClickListener == null ? null : v -> {
+                longClickListener.onListingClick(listing);
+                return true;
             });
         }
     }

@@ -4,6 +4,8 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Matrix;
 import android.media.ExifInterface;
 import android.net.Uri;
@@ -30,11 +32,23 @@ public final class ImageUtils {
         }
         bitmap = applyExifRotation(resolver, uri, bitmap);
         bitmap = scaleDown(bitmap, maxDimension);
+        bitmap = flattenOntoWhite(bitmap);
 
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.JPEG, quality, output);
         bitmap.recycle();
         return output.toByteArray();
+    }
+
+    /** JPEG has no alpha channel, so transparent pixels (PNGs, stickers) would otherwise come out black. */
+    private static Bitmap flattenOntoWhite(Bitmap source) {
+        if (!source.hasAlpha()) return source;
+        Bitmap flattened = Bitmap.createBitmap(source.getWidth(), source.getHeight(), Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(flattened);
+        canvas.drawColor(Color.WHITE);
+        canvas.drawBitmap(source, 0, 0, null);
+        source.recycle();
+        return flattened;
     }
 
     private static Bitmap decodeSampled(ContentResolver resolver, Uri uri, int maxDimension) throws IOException {
