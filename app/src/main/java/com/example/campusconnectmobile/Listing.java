@@ -22,6 +22,11 @@ public class Listing implements Serializable {
     public String coverImage;
     public boolean isSaved;
     public int saves;
+    /** Units left, or -1 when the seller did not set a limit. */
+    public int quantity = -1;
+    public boolean priority;
+    /** Event start as Unix seconds, or 0 when this is not an event. */
+    public long eventAt;
     public final List<String> imageUrls = new ArrayList<>();
 
     public static Listing fromJson(JSONObject json) {
@@ -39,6 +44,9 @@ public class Listing implements Serializable {
         listing.coverImage = json.optString("cover_image", "");
         listing.isSaved = json.optBoolean("is_saved", false);
         listing.saves = json.optInt("saves", 0);
+        listing.quantity = json.isNull("quantity") ? -1 : json.optInt("quantity", -1);
+        listing.priority = json.optInt("priority", 0) == 1;
+        listing.eventAt = json.isNull("event_at") ? 0 : json.optLong("event_at", 0);
         JSONArray images = json.optJSONArray("images");
         if (images != null) {
             for (int i = 0; i < images.length(); i++) {
@@ -60,6 +68,14 @@ public class Listing implements Serializable {
             if (item != null) listings.add(fromJson(item));
         }
         return listings;
+    }
+
+    public boolean hasLimitedStock() {
+        return quantity >= 0;
+    }
+
+    public boolean isEvent() {
+        return eventAt > 0;
     }
 
     public boolean isSold() {

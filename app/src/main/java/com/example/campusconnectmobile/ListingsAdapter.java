@@ -94,6 +94,7 @@ public class ListingsAdapter extends RecyclerView.Adapter<ListingsAdapter.Listin
         private final TextView tvPrice;
         private final TextView tvSoldBadge;
         private final ImageView ivSaved;
+        private final TextView tvUrgency;
 
         ListingViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -101,6 +102,7 @@ public class ListingsAdapter extends RecyclerView.Adapter<ListingsAdapter.Listin
             tvPrice = itemView.findViewById(R.id.tvListingPrice);
             tvSoldBadge = itemView.findViewById(R.id.tvListingSoldBadge);
             ivSaved = itemView.findViewById(R.id.ivListingSaved);
+            tvUrgency = itemView.findViewById(R.id.tvListingUrgency);
         }
 
         void bind(Listing listing, OnListingClickListener listener) {
@@ -118,6 +120,9 @@ public class ListingsAdapter extends RecyclerView.Adapter<ListingsAdapter.Listin
             tvPrice.setText(listing.price > 0 ? PRICE_FORMAT.format(listing.price) : "Free");
             tvSoldBadge.setVisibility(listing.isSold() ? View.VISIBLE : View.GONE);
             ivSaved.setVisibility(listing.isSaved ? View.VISIBLE : View.GONE);
+            String urgency = ListingUrgency.badgeText(tvUrgency.getContext(), listing);
+            tvUrgency.setText(urgency);
+            tvUrgency.setVisibility(urgency == null || listing.isSold() ? View.GONE : View.VISIBLE);
             itemView.setOnClickListener(v -> {
                 if (listener != null) listener.onListingClick(listing);
             });

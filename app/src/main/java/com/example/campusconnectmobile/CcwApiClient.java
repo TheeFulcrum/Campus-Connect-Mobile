@@ -255,10 +255,12 @@ public final class CcwApiClient {
     }
 
     public static void createListing(String title, String description, double price, String category,
-                                     String campus, List<String> imageIds, String token, Callback<Listing> callback) {
+                                     String campus, Integer quantity, boolean priority, Long eventAtSeconds,
+                                     List<String> imageIds, String token, Callback<Listing> callback) {
         JSONObject body = new JSONObject();
         try {
             body.put("action", "create_listing");
+            putUrgency(body, quantity, priority, eventAtSeconds);
             body.put("title", title);
             body.put("description", description);
             body.put("price", price);
@@ -275,10 +277,12 @@ public final class CcwApiClient {
     }
 
     public static void updateListing(int listingId, String title, String description, double price, String category,
-                                     String campus, List<String> imageIds, String token, Callback<Listing> callback) {
+                                     String campus, Integer quantity, boolean priority, Long eventAtSeconds,
+                                     List<String> imageIds, String token, Callback<Listing> callback) {
         JSONObject body = new JSONObject();
         try {
             body.put("action", "update_listing");
+            putUrgency(body, quantity, priority, eventAtSeconds);
             body.put("id", listingId);
             if (title != null) body.put("title", title);
             if (description != null) body.put("description", description);
@@ -293,6 +297,14 @@ public final class CcwApiClient {
             return;
         }
         CcwHttp.postJson(CcwHttp.endpoint("/api/listings/update.php"), body, token, listingResultCallback(callback));
+    }
+
+    /** Always sends all three fields so clearing a value on edit actually clears it on the server. */
+    private static void putUrgency(JSONObject body, Integer quantity, boolean priority, Long eventAtSeconds)
+            throws org.json.JSONException {
+        body.put("quantity", quantity == null ? JSONObject.NULL : quantity);
+        body.put("priority", priority);
+        body.put("event_at", eventAtSeconds == null ? JSONObject.NULL : eventAtSeconds);
     }
 
     public static void saveListing(int listingId, String token, Callback<JSONObject> callback) {

@@ -137,6 +137,84 @@
                 android:entries="@array/campus_locations"
                 android:layout_marginBottom="@dimen/spacing_m" />
 
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/hint_listing_quantity"
+                android:layout_marginBottom="@dimen/spacing_s">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etListingQuantity"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="number"
+                    android:maxLength="6"
+                    android:maxLines="1" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/switchListingPriority"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:enabled="false"
+                android:text="@string/listing_priority_label"
+                android:textColor="@color/colorTextPrimary" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/spacing_m"
+                android:text="@string/listing_priority_hint"
+                android:textColor="@color/colorTextMuted"
+                android:textSize="12sp" />
+
+            <LinearLayout
+                android:id="@+id/layoutListingEvent"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/spacing_m"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/spacing_xs"
+                    android:text="@string/listing_event_label"
+                    android:textColor="@color/colorTextPrimary"
+                    android:textStyle="bold" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/tvListingEventWhen"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/listing_event_none"
+                        android:textColor="@color/colorTextMuted" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnListingEventPick"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/listing_event_pick" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnListingEventClear"
+                        style="@style/Widget.Material3.Button.TextButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/listing_event_clear"
+                        android:visibility="gone" />
+                </LinearLayout>
+            </LinearLayout>
+
             <ProgressBar
                 android:id="@+id/progressUpload"
                 style="?android:attr/progressBarStyleHorizontal"

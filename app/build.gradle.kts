@@ -6,6 +6,10 @@ val authApiBaseUrl = providers.gradleProperty("ccwApiBaseUrl")
     .orElse("https://auth.campusconnect.ink/")
     .get()
 
+// Firebase client settings (Firebase console > Project settings > Your apps). Push stays off until all are set,
+// e.g. in ~/.gradle/gradle.properties:  ccwFcmProjectId=...  ccwFcmAppId=...  ccwFcmApiKey=...  ccwFcmSenderId=...
+fun fcmProperty(name: String): String = providers.gradleProperty(name).orElse("").get()
+
 android {
     namespace = "com.example.campusconnectmobile"
     compileSdk {
@@ -22,6 +26,10 @@ android {
         versionName = "1.0"
 
         buildConfigField("String", "CCW_AUTH_API_BASE_URL", "\"$authApiBaseUrl\"")
+        buildConfigField("String", "FCM_PROJECT_ID", "\"${fcmProperty("ccwFcmProjectId")}\"")
+        buildConfigField("String", "FCM_APP_ID", "\"${fcmProperty("ccwFcmAppId")}\"")
+        buildConfigField("String", "FCM_API_KEY", "\"${fcmProperty("ccwFcmApiKey")}\"")
+        buildConfigField("String", "FCM_SENDER_ID", "\"${fcmProperty("ccwFcmSenderId")}\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -58,6 +66,8 @@ dependencies {
     implementation(libs.lifecycle.viewmodel)
     implementation(libs.lifecycle.livedata)
     implementation(libs.zxing.core)
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.messaging)
     testImplementation(libs.junit)
     androidTestImplementation(libs.espresso.core)
     androidTestImplementation(libs.ext.junit)

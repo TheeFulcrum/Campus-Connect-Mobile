@@ -16,7 +16,7 @@ public class ForgotPasswordActivity extends AppCompatActivity {
 
     private static final int MIN_PASSWORD_LENGTH = 8;
 
-    private EditText etEmail, etToken, etNewPassword, etConfirmPassword;
+    private EditText etEmail, etCode, etNewPassword, etConfirmPassword;
     private TextView tvError, tvInfo;
     private Button btnSendLink, btnReset;
     private View resetSection;
@@ -27,7 +27,7 @@ public class ForgotPasswordActivity extends AppCompatActivity {
         setContentView(R.layout.activity_forgot_password);
 
         etEmail = findViewById(R.id.etForgotEmail);
-        etToken = findViewById(R.id.etResetToken);
+        etCode = findViewById(R.id.etResetCode);
         etNewPassword = findViewById(R.id.etNewPassword);
         etConfirmPassword = findViewById(R.id.etConfirmNewPassword);
         tvError = findViewById(R.id.tvForgotError);
@@ -57,15 +57,15 @@ public class ForgotPasswordActivity extends AppCompatActivity {
         btnSendLink.setEnabled(false);
         PasswordRecoveryApiClient.requestReset(email, new PasswordRecoveryApiClient.RequestCallback() {
             @Override
-            public void onSuccess(String message, String devResetToken) {
+            public void onSuccess(String message, String devResetCode) {
                 if (isFinishing() || isDestroyed()) return;
                 btnSendLink.setEnabled(true);
                 btnSendLink.setText("Resend reset link");
-                tvInfo.setText(message + " Enter the reset code below to choose a new password.");
+                tvInfo.setText(message + " Enter the 6-digit code below to choose a new password.");
                 tvInfo.setVisibility(View.VISIBLE);
                 resetSection.setVisibility(View.VISIBLE);
-                if (!TextUtils.isEmpty(devResetToken)) {
-                    etToken.setText(devResetToken);
+                if (!TextUtils.isEmpty(devResetCode)) {
+                    etCode.setText(devResetCode);
                 }
             }
 
@@ -79,12 +79,13 @@ public class ForgotPasswordActivity extends AppCompatActivity {
     }
 
     private void submitReset() {
-        String token = extractToken(etToken.getText().toString());
+        String email = etEmail.getText().toString().trim();
+        String code = etCode.getText().toString().trim();
         String password = etNewPassword.getText().toString();
         String confirm = etConfirmPassword.getText().toString();
 
-        if (TextUtils.isEmpty(token)) {
-            showError("Please enter your reset code.");
+        if (!code.matches("\\d{6}")) {
+            showError("Please enter the 6-digit code from your email.");
             return;
         }
         if (password.length() < MIN_PASSWORD_LENGTH) {
@@ -98,7 +99,7 @@ public class ForgotPasswordActivity extends AppCompatActivity {
 
         hideError();
         btnReset.setEnabled(false);
-        PasswordRecoveryApiClient.resetPassword(token, password, new PasswordRecoveryApiClient.ResetCallback() {
+        PasswordRecoveryApiClient.resetPassword(email, code, password, new PasswordRecoveryApiClient.ResetCallback() {
             @Override
             public void onSuccess(String message) {
                 Toast.makeText(getApplicationContext(),
@@ -114,21 +115,6 @@ public class ForgotPasswordActivity extends AppCompatActivity {
                 showError(message);
             }
         });
-    }
-
-    /** Accepts either the bare code or a pasted reset link containing "token=". */
-    static String extractToken(String input) {
-        String value = input == null ? "" : input.trim();
-        int index = value.indexOf("token=");
-        if (index >= 0) {
-            value = value.substring(index + "token=".length());
-            int end = 0;
-            while (end < value.length() && value.charAt(end) != '&' && !Character.isWhitespace(value.charAt(end))) {
-                end++;
-            }
-            value = value.substring(0, end);
-        }
-        return value.trim();
     }
 
     private void showError(String message) {

@@ -104,7 +104,8 @@ public class ListingDetailActivity extends AppCompatActivity {
         priceView.setText(price);
         titleView.setText(listing.title == null ? "" : listing.title);
         metaView.setText(joinMeta(listing.category, listing.campus, listing.isSold()
-                ? getString(R.string.listing_status_sold) : null));
+                ? getString(R.string.listing_status_sold) : null,
+                ListingUrgency.stockText(this, listing), ListingUrgency.eventText(this, listing)));
         descriptionView.setText(listing.description == null ? "" : listing.description);
         String seller = listing.sellerUsername == null || listing.sellerUsername.isEmpty()
                 ? "" : "@" + listing.sellerUsername;
@@ -130,11 +131,11 @@ public class ListingDetailActivity extends AppCompatActivity {
         reviewButton.setVisibility(!isOwner && listing.isSold() ? View.VISIBLE : View.GONE);
     }
 
-    private String joinMeta(String category, String campus, String status) {
+    private String joinMeta(String... values) {
         ArrayList<String> parts = new ArrayList<>();
-        if (category != null && !category.isEmpty()) parts.add(category);
-        if (campus != null && !campus.isEmpty()) parts.add(campus);
-        if (status != null && !status.isEmpty()) parts.add(status);
+        for (String value : values) {
+            if (value != null && !value.isEmpty()) parts.add(value);
+        }
         return android.text.TextUtils.join(" · ", parts);
     }
 

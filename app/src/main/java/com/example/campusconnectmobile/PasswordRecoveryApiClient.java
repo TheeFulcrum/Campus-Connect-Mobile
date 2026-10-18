@@ -6,8 +6,8 @@ import org.json.JSONObject;
 public final class PasswordRecoveryApiClient {
 
     public interface RequestCallback {
-        /** devResetToken is only non-empty when the server runs in development mode. */
-        void onSuccess(String message, String devResetToken);
+        /** devResetCode is only non-empty when the server runs in development mode. */
+        void onSuccess(String message, String devResetCode);
         void onError(String message);
     }
 
@@ -34,7 +34,7 @@ public final class PasswordRecoveryApiClient {
                     public void onSuccess(JSONObject json) {
                         callback.onSuccess(
                                 json.optString("message", "If an account with that email exists, a password reset link will be sent."),
-                                json.optString("reset_token", ""));
+                                json.optString("reset_code", ""));
                     }
 
                     @Override
@@ -44,11 +44,12 @@ public final class PasswordRecoveryApiClient {
                 });
     }
 
-    public static void resetPassword(String token, String newPassword, ResetCallback callback) {
+    public static void resetPassword(String email, String code, String newPassword, ResetCallback callback) {
         JSONObject body = new JSONObject();
         try {
             body.put("action", "reset_password");
-            body.put("token", token);
+            body.put("email", email);
+            body.put("code", code);
             body.put("password", newPassword);
         } catch (Exception exception) {
             callback.onError("Unable to prepare the password reset.");

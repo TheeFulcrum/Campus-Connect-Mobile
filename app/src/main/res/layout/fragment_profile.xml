@@ -78,15 +78,32 @@
                 android:textSize="12sp"
                 android:visibility="gone" />
 
-            <ImageView
-                android:id="@+id/ivProfileAvatar"
-                android:layout_width="@dimen/avatar_size_large"
-                android:layout_height="@dimen/avatar_size_large"
+            <FrameLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
-                android:layout_marginTop="@dimen/spacing_s"
-                android:background="@drawable/bg_avatar_circle"
-                android:contentDescription="@string/cd_user_avatar"
-                android:scaleType="centerCrop" />
+                android:layout_marginTop="@dimen/spacing_s">
+
+                <ImageView
+                    android:id="@+id/ivProfileAvatar"
+                    android:layout_width="@dimen/avatar_size_large"
+                    android:layout_height="@dimen/avatar_size_large"
+                    android:background="@drawable/bg_avatar_circle"
+                    android:contentDescription="@string/cd_user_avatar"
+                    android:scaleType="centerCrop" />
+
+                <ImageView
+                    android:id="@+id/ivAvatarEditBadge"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:layout_gravity="bottom|end"
+                    android:background="@drawable/bg_avatar_badge"
+                    android:contentDescription="@string/profile_change_photo"
+                    android:padding="6dp"
+                    android:src="@drawable/ic_camera_small"
+                    android:visibility="gone"
+                    app:tint="@color/white" />
+            </FrameLayout>
 
             <LinearLayout
                 android:layout_width="match_parent"

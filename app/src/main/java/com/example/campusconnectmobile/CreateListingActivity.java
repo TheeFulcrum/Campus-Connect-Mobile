@@ -1,11 +1,16 @@
 package com.example.campusconnectmobile;
 
+import android.app.DatePickerDialog;
+import android.app.TimePickerDialog;
 import android.net.Uri;
 import android.os.Bundle;
+import android.text.Editable;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -22,10 +27,12 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.textfield.TextInputEditText;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ExecutorService;
@@ -45,6 +52,13 @@ public class CreateListingActivity extends AppCompatActivity {
     private TextInputEditText titleInput;
     private TextInputEditText descriptionInput;
     private TextInputEditText priceInput;
+    private TextInputEditText quantityInput;
+    private MaterialSwitch prioritySwitch;
+    private View eventLayout;
+    private TextView eventWhenView;
+    private View eventClearButton;
+    /** Event start in Unix seconds; null when no date is set. */
+    private Long eventAtSeconds;
     private Spinner categorySpinner;
     private Spinner campusSpinner;
     private MaterialButton postButton;
@@ -79,6 +93,11 @@ public class CreateListingActivity extends AppCompatActivity {
         priceInput = findViewById(R.id.etListingPrice);
         categorySpinner = findViewById(R.id.spListingCategory);
         campusSpinner = findViewById(R.id.spListingCampus);
+        quantityInput = findViewById(R.id.etListingQuantity);
+        prioritySwitch = findViewById(R.id.switchListingPriority);
+        eventLayout = findViewById(R.id.layoutListingEvent);
+        eventWhenView = findViewById(R.id.tvListingEventWhen);
+        eventClearButton = findViewById(R.id.btnListingEventClear);
         postButton = findViewById(R.id.btnPostListing);
         uploadProgress = findViewById(R.id.progressUpload);
         uploadStatus = findViewById(R.id.tvUploadStatus);
@@ -96,10 +115,95 @@ public class CreateListingActivity extends AppCompatActivity {
                 for (String uri : savedUris) imageUris.add(Uri.parse(uri));
             }
         }
+        setupUrgencyControls();
         if (editListing != null) populateListing();
         imageAdapter.notifyDataSetChanged();
         postButton.setText(editListing == null ? R.string.btn_post_listing : R.string.btn_save_changes);
         postButton.setOnClickListener(v -> submitListing());
+    }
+
+    private void setupUrgencyControls() {
+        quantityInput.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                boolean hasStock = parsedQuantity() != null && parsedQuantity() > 0;
+                prioritySwitch.setEnabled(hasStock);
+                if (!hasStock) prioritySwitch.setChecked(false);
+            }
+        });
+        categorySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                updateEventVisibility();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
+        });
+        findViewById(R.id.btnListingEventPick).setOnClickListener(v -> pickEventDateTime());
+        eventClearButton.setOnClickListener(v -> {
+            eventAtSeconds = null;
+            updateEventLabel();
+        });
+    }
+
+    private boolean isEventCategory() {
+        Object selected = categorySpinner.getSelectedItem();
+        return selected != null && String.valueOf(selected).startsWith("Events");
+    }
+
+    private void updateEventVisibility() {
+        eventLayout.setVisibility(isEventCategory() ? View.VISIBLE : View.GONE);
+    }
+
+    private void updateEventLabel() {
+        if (eventAtSeconds == null) {
+            eventWhenView.setText(R.string.listing_event_none);
+            eventClearButton.setVisibility(View.GONE);
+        } else {
+            eventWhenView.setText(ListingUrgency.formatEventTime(this, eventAtSeconds));
+            eventClearButton.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void pickEventDateTime() {
+        Calendar start = Calendar.getInstance();
+        if (eventAtSeconds != null) start.setTimeInMillis(eventAtSeconds * 1000L);
+        DatePickerDialog dateDialog = new DatePickerDialog(this, (picker, year, month, day) -> {
+            new TimePickerDialog(this, (timePicker, hour, minute) -> {
+                Calendar chosen = Calendar.getInstance();
+                chosen.set(year, month, day, hour, minute, 0);
+                if (chosen.getTimeInMillis() <= System.currentTimeMillis()) {
+                    Toast.makeText(this, R.string.listing_event_past, Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                eventAtSeconds = chosen.getTimeInMillis() / 1000L;
+                updateEventLabel();
+            }, start.get(Calendar.HOUR_OF_DAY), start.get(Calendar.MINUTE),
+                    android.text.format.DateFormat.is24HourFormat(this)).show();
+        }, start.get(Calendar.YEAR), start.get(Calendar.MONTH), start.get(Calendar.DAY_OF_MONTH));
+        dateDialog.getDatePicker().setMinDate(System.currentTimeMillis() - 1000);
+        dateDialog.show();
+    }
+
+    /** Null when the field is empty or not a whole number. */
+    private Integer parsedQuantity() {
+        String raw = textOf(quantityInput);
+        if (raw.isEmpty()) return null;
+        try {
+            return Integer.parseInt(raw);
+        } catch (NumberFormatException exception) {
+            return null;
+        }
     }
 
     private static Listing getListingExtra(android.content.Intent intent, String key) {
@@ -113,6 +217,13 @@ public class CreateListingActivity extends AppCompatActivity {
         priceInput.setText(String.format(Locale.US, "%.2f", editListing.price));
         setSpinnerSelection(categorySpinner, editListing.category);
         setSpinnerSelection(campusSpinner, editListing.campus);
+        if (editListing.hasLimitedStock()) quantityInput.setText(String.valueOf(editListing.quantity));
+        prioritySwitch.setChecked(editListing.priority && editListing.quantity > 0);
+        if (editListing.isEvent()) {
+            eventAtSeconds = editListing.eventAt;
+            updateEventLabel();
+        }
+        updateEventVisibility();
         if (editListing.coverImage != null && !editListing.coverImage.isEmpty()) {
             uploadStatus.setText(getString(R.string.listing_images_hint));
             uploadStatus.setVisibility(View.VISIBLE);
@@ -172,6 +283,11 @@ public class CreateListingActivity extends AppCompatActivity {
         } catch (NumberFormatException exception) {
             priceInput.setError(getString(R.string.listing_price_invalid));
             priceInput.requestFocus();
+            return;
+        }
+        if (!textOf(quantityInput).isEmpty() && parsedQuantity() == null) {
+            quantityInput.setError(getString(R.string.listing_quantity_invalid));
+            quantityInput.requestFocus();
             return;
         }
         if (categorySpinner.getSelectedItem() == null || campusSpinner.getSelectedItem() == null) {
@@ -249,11 +365,15 @@ public class CreateListingActivity extends AppCompatActivity {
             }
         };
         String token = sessionManager.getAuthToken();
+        Integer quantity = parsedQuantity();
+        boolean priority = prioritySwitch.isChecked() && quantity != null && quantity > 0;
+        Long eventAt = isEventCategory() ? eventAtSeconds : null;
         if (editListing == null) {
-            CcwApiClient.createListing(title, description, price, category, campus, imageUrls, token, callback);
-        } else {
-            CcwApiClient.updateListing(editListing.id, title, description, price, category, campus,
+            CcwApiClient.createListing(title, description, price, category, campus, quantity, priority, eventAt,
                     imageUrls, token, callback);
+        } else {
+            CcwApiClient.updateListing(editListing.id, title, description, price, category, campus, quantity,
+                    priority, eventAt, imageUrls, token, callback);
         }
     }
 

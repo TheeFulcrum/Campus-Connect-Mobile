@@ -1,6 +1,7 @@
 package com.example.campusconnectmobile;
 
 import android.content.ClipData;
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -45,6 +46,8 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.FileUtils;
+import android.os.Handler;
+import android.os.Looper;
 import androidx.core.content.FileProvider;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -65,6 +68,7 @@ public class ProfileFragment extends Fragment implements FollowListBottomSheet.F
     private TextView tvTopUsername;
     private TextView tvNote;
     private ImageView ivAvatar;
+    private View ivAvatarEditBadge;
     private TextView tvCountListings;
     private TextView tvCountFollowers;
     private TextView tvCountFollowing;
@@ -119,6 +123,7 @@ public class ProfileFragment extends Fragment implements FollowListBottomSheet.F
         tvTopUsername = view.findViewById(R.id.tvProfileTopUsername);
         tvNote = view.findViewById(R.id.tvProfileNote);
         ivAvatar = view.findViewById(R.id.ivProfileAvatar);
+        ivAvatarEditBadge = view.findViewById(R.id.ivAvatarEditBadge);
         tvCountListings = view.findViewById(R.id.tvCountListings);
         tvCountFollowers = view.findViewById(R.id.tvCountFollowers);
         tvCountFollowing = view.findViewById(R.id.tvCountFollowing);
@@ -173,9 +178,11 @@ public class ProfileFragment extends Fragment implements FollowListBottomSheet.F
     }
 
     private void wireActions() {
-        ivAvatar.setOnClickListener(v -> {
+        View.OnClickListener changePhoto = v -> {
             if (profile != null && profile.isMe) avatarPickerLauncher.launch("image/*");
-        });
+        };
+        ivAvatar.setOnClickListener(changePhoto);
+        ivAvatarEditBadge.setOnClickListener(changePhoto);
         btnCreate.setOnClickListener(v -> startActivity(new Intent(requireContext(), CreateListingActivity.class)));
         btnMenu.setOnClickListener(v -> showOwnMenu());
         btnOtherMenu.setOnClickListener(v -> showOtherMenu());
@@ -204,6 +211,10 @@ public class ProfileFragment extends Fragment implements FollowListBottomSheet.F
         menu.findViewById(R.id.menuEditProfile).setOnClickListener(v -> {
             sheet.dismiss();
             showEditDialog();
+        });
+        menu.findViewById(R.id.menuChangePhoto).setOnClickListener(v -> {
+            sheet.dismiss();
+            if (profile != null && profile.isMe) avatarPickerLauncher.launch("image/*");
         });
         menu.findViewById(R.id.menuQrCode).setOnClickListener(v -> {
             sheet.dismiss();
@@ -391,25 +402,30 @@ public class ProfileFragment extends Fragment implements FollowListBottomSheet.F
     }
 
     private void uploadAvatar(Uri uri) {
+        Toast.makeText(requireContext(), R.string.profile_photo_uploading, Toast.LENGTH_SHORT).show();
+        Context appContext = requireContext().getApplicationContext();
+        String token = sessionManager.getAuthToken();
         CcwHttp.runAsync(() -> {
+            byte[] bytes;
             try {
-                byte[] bytes = ImageUtils.readAndCompress(requireContext(), uri, 512, 86);
-                CcwApiClient.uploadAvatar(bytes, sessionManager.getAuthToken(), percent -> {}, new CcwApiClient.Callback<String>() {
-                    @Override
-                    public void onSuccess(String result) {
-                        reloadFromServer();
-                    }
-
-                    @Override
-                    public void onError(String message) {
-                        if (!isAdded()) return;
-                        Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show();
-                    }
-                });
+                bytes = ImageUtils.readAndCompress(appContext, uri, 512, 86);
             } catch (Exception exception) {
-                if (!isAdded()) return;
-                Toast.makeText(requireContext(), R.string.listing_image_read_error, Toast.LENGTH_SHORT).show();
+                new Handler(Looper.getMainLooper()).post(() ->
+                        Toast.makeText(appContext, R.string.listing_image_read_error, Toast.LENGTH_SHORT).show());
+                return;
             }
+            CcwApiClient.uploadAvatar(bytes, token, percent -> {}, new CcwApiClient.Callback<String>() {
+                @Override
+                public void onSuccess(String result) {
+                    Toast.makeText(appContext, R.string.profile_photo_updated, Toast.LENGTH_SHORT).show();
+                    if (isAdded()) reloadFromServer();
+                }
+
+                @Override
+                public void onError(String message) {
+                    Toast.makeText(appContext, message, Toast.LENGTH_LONG).show();
+                }
+            });
         });
     }
 
@@ -526,6 +542,7 @@ public class ProfileFragment extends Fragment implements FollowListBottomSheet.F
                 .circleCrop()
                 .into(ivAvatar);
 
+        ivAvatarEditBadge.setVisibility(profile.isMe ? View.VISIBLE : View.GONE);
         btnMenu.setVisibility(profile.isMe ? View.VISIBLE : View.GONE);
         btnCreate.setVisibility(profile.isMe ? View.VISIBLE : View.GONE);
         layoutOwnActions.setVisibility(profile.isMe ? View.VISIBLE : View.GONE);

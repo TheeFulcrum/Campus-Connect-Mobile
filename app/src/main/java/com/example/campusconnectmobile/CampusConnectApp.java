@@ -8,5 +8,7 @@ public class CampusConnectApp extends Application {
         super.onCreate();
         SessionManager sessionManager = new SessionManager(this);
         ThemeHelper.applySavedTheme(sessionManager);
+        NotificationChannels.create(this);
+        PushRegistrar.init(this);
     }
 }

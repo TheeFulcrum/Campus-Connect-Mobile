@@ -34,6 +34,22 @@
         tools:text="$25" />
 
     <TextView
+        android:id="@+id/tvListingUrgency"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="4dp"
+        android:background="@color/colorAccent"
+        android:paddingHorizontal="6dp"
+        android:paddingVertical="2dp"
+        android:textColor="@color/white"
+        android:textSize="11sp"
+        android:textStyle="bold"
+        android:visibility="gone"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="Only 2 left" />
+
+    <TextView
         android:id="@+id/tvListingSoldBadge"
         android:layout_width="0dp"
         android:layout_height="0dp"

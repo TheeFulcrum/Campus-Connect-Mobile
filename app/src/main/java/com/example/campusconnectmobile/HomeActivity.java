@@ -1,9 +1,11 @@
 package com.example.campusconnectmobile;
 
+import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -12,6 +14,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -42,6 +45,11 @@ public class HomeActivity extends AppCompatActivity {
     private SessionManager sessionManager;
     private int currentSelectedTabId = R.id.nav_home;
     private String profileUsernameOverride;
+
+    private final ActivityResultLauncher<String> notificationPermissionLauncher = registerForActivityResult(
+            new ActivityResultContracts.RequestPermission(), granted -> {
+                if (granted) PushRegistrar.sync(this);
+            });
 
     private final ActivityResultLauncher<ScanOptions> qrScanLauncher = registerForActivityResult(
             new ScanContract(), result -> {
@@ -107,6 +115,71 @@ public class HomeActivity extends AppCompatActivity {
         }
         setupBottomNavigation();
         updateNavigationAppearance();
+        requestNotificationPermissionIfNeeded();
+        handlePushIntent(getIntent());
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        handlePushIntent(intent);
+    }
+
+    private void requestNotificationPermissionIfNeeded() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+                && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
+        }
+    }
+
+    /** Opens the screen a tapped push notification refers to. */
+    private void handlePushIntent(Intent intent) {
+        String type = intent.getStringExtra(AppNotifier.EXTRA_PUSH_TYPE);
+        if (type == null) return;
+        int entityId = intent.getIntExtra(AppNotifier.EXTRA_PUSH_ENTITY_ID, 0);
+        String title = intent.getStringExtra(AppNotifier.EXTRA_PUSH_TITLE);
+        // Consume the extras so rotating or resuming the screen does not reopen the target
+        intent.removeExtra(AppNotifier.EXTRA_PUSH_TYPE);
+
+        switch (type) {
+            case "message":
+                if (entityId > 0) {
+                    Intent chat = new Intent(this, ChatActivity.class);
+                    chat.putExtra(ChatActivity.EXTRA_CONVERSATION_ID, entityId);
+                    chat.putExtra(ChatActivity.EXTRA_CONVERSATION_TITLE, title);
+                    startActivity(chat);
+                } else {
+                    openMessages();
+                }
+                break;
+            case "listing_limited":
+            case "low_stock":
+            case "event_reminder":
+                openListingById(entityId);
+                break;
+            default:
+                openNotifications();
+        }
+    }
+
+    public void openListingById(int listingId) {
+        if (listingId <= 0) return;
+        CcwApiClient.getListing(listingId, sessionManager.getAuthToken(), new CcwApiClient.Callback<Listing>() {
+            @Override
+            public void onSuccess(Listing result) {
+                if (isFinishing() || isDestroyed()) return;
+                Intent detail = new Intent(HomeActivity.this, ListingDetailActivity.class);
+                detail.putExtra(ListingDetailActivity.EXTRA_LISTING, result);
+                startActivity(detail);
+            }
+
+            @Override
+            public void onError(String message) {
+                if (isFinishing() || isDestroyed()) return;
+                Toast.makeText(HomeActivity.this, message, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void setupBottomNavigation() {
@@ -316,6 +389,7 @@ public class HomeActivity extends AppCompatActivity {
      */
     private void clearSessionAndRedirect() {
         String token = sessionManager.getAuthToken();
+        PushRegistrar.unregister(getApplicationContext(), token);
         sessionManager.clearSession();
         if (token != null) {
             AuthApiClient.logout(token, new AuthApiClient.Callback() {
@@ -375,6 +449,7 @@ public class HomeActivity extends AppCompatActivity {
                     redirectToLogin();
                 } else {
                     sessionManager.setLoggedInUsername(result.username);
+                    PushRegistrar.sync(HomeActivity.this);
                 }
             }
 

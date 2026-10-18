@@ -123,7 +123,7 @@ public class NotificationsFragment extends Fragment {
                     : "@" + notification.actorUsername;
             String body = notification.body == null || notification.body.isEmpty()
                     ? notification.type : notification.body;
-            holder.body.setText(actor + " · " + body);
+            holder.body.setText("event_reminder".equals(notification.type) ? body : actor + " · " + body);
             holder.meta.setText(toTimeAgo(notification.createdAt));
             holder.unreadDot.setVisibility(notification.isRead ? View.GONE : View.VISIBLE);
             Glide.with(holder.avatar).load(CcwHttp.resolveUrl(notification.actorAvatarUrl))
@@ -132,7 +132,9 @@ public class NotificationsFragment extends Fragment {
                     .circleCrop()
                     .into(holder.avatar);
             holder.itemView.setOnClickListener(v -> {
-                if (getActivity() instanceof HomeActivity && notification.actorUsername != null
+                if (getActivity() instanceof HomeActivity && isListingAlert(notification.type)) {
+                    ((HomeActivity) getActivity()).openListingById(notification.entityId);
+                } else if (getActivity() instanceof HomeActivity && notification.actorUsername != null
                         && !notification.actorUsername.isEmpty()) {
                     ((HomeActivity) getActivity()).openProfile(notification.actorUsername);
                 }
@@ -158,6 +160,10 @@ public class NotificationsFragment extends Fragment {
                 unreadDot = itemView.findViewById(R.id.vUnreadDot);
             }
         }
+    }
+
+    private static boolean isListingAlert(String type) {
+        return "listing_limited".equals(type) || "low_stock".equals(type) || "event_reminder".equals(type);
     }
 
     private String toTimeAgo(String value) {
